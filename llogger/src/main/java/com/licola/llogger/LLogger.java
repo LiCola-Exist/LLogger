@@ -11,10 +11,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Log加强工具类
- * 1.可以在发布后关闭日志打印功能
- * 2.可以直接调用  LLogger.d() 打印方法调用
- * 详细说明：http://blog.csdn.net/card361401376/article/details/51438786
+ * Log日志工具类
+ * 1：支持打印类名，行号，方法等信息，且能够点击跳转到具体代码
+ * 2：支持变长参数打印，json格式化打印
+ * 3：支持log保存到本地文件，且使用时间间隔防止日志文件过长
+ *
+ * 基于：https://github.com/ZhaoKaiQiang/KLog项目改造
  */
 
 public final class LLogger {

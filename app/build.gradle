@@ -21,9 +21,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    //log工具
-    implementation "com.github.zhaokaiqiang.klog:library:1.6.0"
-
     implementation project(":llogger")
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
