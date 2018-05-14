@@ -29,7 +29,7 @@ public final class LLogger {
   private static final String DEFAULT_TAG = "LLogger";
   private static final String TRACE_CLASS_END = "at com.licola.llogger.LLogger";
 
-  private static final String FILE_PREFIX = "LLogger_";
+  private static final String DEFAULT_FILE_PREFIX = "LLogger_";
   private static final String FILE_FORMAT = ".log";
 
   private static boolean mShowLog = true;
@@ -48,6 +48,7 @@ public final class LLogger {
   private static String TAG = DEFAULT_TAG;
   private static File mLogFileDir = null;
   private static boolean mSaveLog = false;
+  private static String FILE_PREFIX;
 
   public static void init(boolean showLog) {
     init(showLog, DEFAULT_TAG);
@@ -59,10 +60,15 @@ public final class LLogger {
   }
 
   public static void init(boolean showLog, String tag, File logFileDir) {
+    init(showLog, tag, logFileDir, DEFAULT_FILE_PREFIX);
+  }
+
+  public static void init(boolean showLog, String tag, File logFileDir, String logFilePrefix) {
     mShowLog = showLog;
     TAG = tag;
     mSaveLog = logFileDir != null;
     mLogFileDir = logFileDir;
+    FILE_PREFIX = logFilePrefix;
   }
 
   public static void v() {
@@ -153,7 +159,6 @@ public final class LLogger {
     printJson(jsonFormat);
   }
 
-
   private static void printJson(Object object) {
 
     if (!mShowLog) {
@@ -171,16 +176,7 @@ public final class LLogger {
 
     String headString = wrapperContent(STACK_TRACE_INDEX_5);
     String msg = (objects == null) ? NULL : getObjectsString(objects);
-    switch (type) {
-      case V:
-      case D:
-      case I:
-      case W:
-      case E:
-      case A:
-        BaseLog.printDefault(type, TAG, headString + msg);
-        break;
-    }
+    BaseLog.printDefault(type, TAG, headString + msg);
 
     if (mSaveLog) {
       printFile(headString, msg);
@@ -191,10 +187,10 @@ public final class LLogger {
   private static void printFile(String headString, String msg) {
 
     long timeMillis = System.currentTimeMillis();
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS", Locale.CHINA);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS", Locale.CHINA);
     String timeFormat = dateFormat.format(timeMillis);
 
-    File logFile = makeLogFile(mLogFileDir, timeMillis);
+    File logFile = makeLogFileWithTime(mLogFileDir, timeMillis);
 
     try {
       FileLog.printFile(logFile, timeFormat, headString, msg);
@@ -204,8 +200,8 @@ public final class LLogger {
     }
   }
 
-  private static File makeLogFile(File LogFileDir, long timeMillis) {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH", Locale.CHINA);
+  private static File makeLogFileWithTime(File LogFileDir, long timeMillis) {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH", Locale.CHINA);
     String timeFormat = dateFormat.format(timeMillis);
     File file = new File(LogFileDir, FILE_PREFIX + timeFormat + FILE_FORMAT);
     if (!file.exists()) {
