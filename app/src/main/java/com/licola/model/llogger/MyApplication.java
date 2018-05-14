@@ -11,6 +11,6 @@ public class MyApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
-    LLogger.init(true,"Demo");
+    LLogger.init(true,"Demo",getCacheDir());
   }
 }

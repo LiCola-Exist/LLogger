@@ -1,7 +1,12 @@
 package com.licola.llogger;
 
+import android.util.Log;
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,15 +21,16 @@ public final class LLogger {
 
   public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-  private static final String DEFAULT_MESSAGE = "exe";
+  private static final String DEFAULT_MESSAGE = "execute";
   private static final String ARGUMENTS = "argument";
   private static final String NULL = "null";
 
   private static final String SUFFIX_JAVA = ".java";
-
   private static final String DEFAULT_TAG = "LLogger";
-
   private static final String TRACE_CLASS_END = "at com.licola.llogger.LLogger";
+
+  private static final String FILE_PREFIX = "LLogger_";
+  private static final String FILE_FORMAT = ".log";
 
   private static boolean mShowLog = true;
 
@@ -35,15 +41,13 @@ public final class LLogger {
   public static final int E = 0x5;
   public static final int A = 0x6;
 
-  private static final int JSON = 0x7;
-
-  public static final int JSON_INDENT = 4;
 
   private static final int STACK_TRACE_INDEX_5 = 5;//线程的栈层级
   private static final int STACK_TRACE_INDEX_4 = 4;
 
-  private static String TAG = "LLogger";
-
+  private static String TAG = DEFAULT_TAG;
+  private static File mLogFileDir = null;
+  private static boolean mSaveLog = false;
 
   public static void init(boolean showLog) {
     init(showLog, DEFAULT_TAG);
@@ -52,6 +56,13 @@ public final class LLogger {
   public static void init(boolean showLog, String tag) {
     mShowLog = showLog;
     TAG = tag;
+  }
+
+  public static void init(boolean showLog, String tag, File logFileDir) {
+    mShowLog = showLog;
+    TAG = tag;
+    mSaveLog = logFileDir != null;
+    mLogFileDir = logFileDir;
   }
 
   public static void v() {
@@ -126,6 +137,9 @@ public final class LLogger {
     printLog(A, objects);
   }
 
+  public static void trace() {
+    printStackTrace();
+  }
 
   public static void json(JSONObject jsonObject) {
     printJson(jsonObject);
@@ -139,9 +153,6 @@ public final class LLogger {
     printJson(jsonFormat);
   }
 
-  public static void trace() {
-    printStackTrace();
-  }
 
   private static void printJson(Object object) {
 
@@ -171,6 +182,42 @@ public final class LLogger {
         break;
     }
 
+    if (mSaveLog) {
+      printFile(headString, msg);
+    }
+
+  }
+
+  private static void printFile(String headString, String msg) {
+
+    long timeMillis = System.currentTimeMillis();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS", Locale.CHINA);
+    String timeFormat = dateFormat.format(timeMillis);
+
+    File logFile = makeLogFile(mLogFileDir, timeMillis);
+
+    try {
+      FileLog.printFile(logFile, timeFormat, headString, msg);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Log.e(TAG, "log写本地文件失败", e);
+    }
+  }
+
+  private static File makeLogFile(File LogFileDir, long timeMillis) {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH", Locale.CHINA);
+    String timeFormat = dateFormat.format(timeMillis);
+    File file = new File(LogFileDir, FILE_PREFIX + timeFormat + FILE_FORMAT);
+    if (!file.exists()) {
+      try {
+        file.createNewFile();
+        Log.i(TAG, "create log file local:" + file.getAbsolutePath());
+        return file;
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return file;
   }
 
   private static void printStackTrace() {
@@ -206,16 +253,19 @@ public final class LLogger {
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 
     StackTraceElement targetElement = stackTraceElements[stackTraceIndex];
+    String classFileName = targetElement.getFileName();
     String className = targetElement.getClassName();
+
     String[] classNameInfo = className.split("\\.");
     if (classNameInfo.length > 0) {
-      //只取类名
       className = classNameInfo[classNameInfo.length - 1] + SUFFIX_JAVA;
     }
 
-    if (className.contains("$")) {
+    String innerClassName = null;
+    if (!classFileName.equals(className) && className.contains("$")) {
       //内部类
-      className = className.split("\\$")[0] + SUFFIX_JAVA;
+      int index = className.indexOf("$");
+      innerClassName = className.substring(index);
     }
 
     String methodName = targetElement.getMethodName();
@@ -225,7 +275,14 @@ public final class LLogger {
       lineNumber = 0;
     }
 
-    return "[ (" + className + ":" + lineNumber + ")#" + methodName + " ] ";
+    return " [ ("
+        + classFileName
+        + ':'
+        + lineNumber
+        + ')'
+        + (innerClassName == null ? "#" : innerClassName + "#")
+        + methodName
+        + " ] ";
   }
 
   private static String getObjectsString(Object[] objects) {
@@ -233,13 +290,16 @@ public final class LLogger {
     if (objects.length > 1) {
       StringBuilder builder = new StringBuilder();
       builder.append("\n");
-      for (int i = 0; i < objects.length; i++) {
+      for (int i = 0, length = objects.length; i < length; i++) {
         Object object = objects[i];
-        builder.append(ARGUMENTS).append("[").append(i).append("]").append("=");
+        builder.append("\t").append(ARGUMENTS).append("[").append(i).append("]").append("=");
         if (object == null) {
-          builder.append(NULL).append("\n");
+          builder.append(NULL);
         } else {
-          builder.append(object.toString()).append("\n");
+          builder.append(object.toString());
+        }
+        if (i != length - 1) {
+          builder.append("\n");
         }
       }
       return builder.toString();
@@ -250,7 +310,4 @@ public final class LLogger {
 
   }
 
-  static class FileWriteHelper {
-
-  }
 }

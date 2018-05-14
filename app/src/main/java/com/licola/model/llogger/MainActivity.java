@@ -15,7 +15,6 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-
   }
 
   public void onClickLogV(View view) {
@@ -83,11 +82,17 @@ public class MainActivity extends AppCompatActivity {
     myRunnable.run();
   }
 
-  static class MyRunnable implements Runnable {
+  class MyRunnable implements Runnable {
 
     @Override
     public void run() {
       LLogger.d("inner class");
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          LLogger.d("inner-inner class");
+        }
+      });
     }
   }
 
