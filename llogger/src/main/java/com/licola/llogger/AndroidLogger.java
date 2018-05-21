@@ -5,11 +5,39 @@ import android.util.Log;
 /**
  * Created by LiCola on 2018/5/14.
  */
-public class BaseLog {
-  private static final int MAX_LENGTH = 4000;
+public class AndroidLogger implements Logger{
 
-  public static void printDefault(int type, String tag, String msg) {
 
+  private static final boolean ANDROID_LOG_AVAILABLE;
+
+  static {
+    boolean android = false;
+    try {
+      android = Class.forName("android.util.Log") != null;
+    } catch (ClassNotFoundException e) {
+      //not android environment
+    }
+
+    if (android){
+      //Test环境 有android的mock
+      try {
+        Log.i(LLogger.DEFAULT_TAG,"android environment");
+      }catch (RuntimeException e){
+        android=false;
+      }
+    }
+
+    ANDROID_LOG_AVAILABLE = android;
+  }
+
+
+  public static boolean isAndroidLogAvailable() {
+    return ANDROID_LOG_AVAILABLE;
+  }
+
+
+  @Override
+  public void log(int type, String tag, String msg) {
     int index = 0;
     int length = msg.length();
     int countOfSub = length / MAX_LENGTH;
@@ -48,4 +76,6 @@ public class BaseLog {
         break;
     }
   }
+
+
 }

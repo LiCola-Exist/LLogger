@@ -1,8 +1,9 @@
 package com.licola.model.llogger;
 
+import com.licola.llogger.LLogger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -12,7 +13,12 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
 
   @Test
-  public void addition_isCorrect() {
-    assertEquals(4, 2 + 2);
+  public void LLoggerTest() {
+    System.out.println("05-21 14:54:58.039 17473-17473 D/Demo: [ (ExampleUnitTest.java:17)#lloggerTest ] ");
+    System.out.println("05-21 14:54:58.039 17473-17473 D/Demo: [ (ExampleUnitTest.java:18)#lloggerTest ] debug");
+//    System.out.println("05-21 18:43:30:296 main D/LLogger:   [ (ExampleUnitTest.java:19)#lloggerTest ] test java");
+    LLogger.d("debug");
   }
+
+
 }

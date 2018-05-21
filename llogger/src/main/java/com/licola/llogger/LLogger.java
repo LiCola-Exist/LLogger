@@ -1,13 +1,14 @@
 package com.licola.llogger;
 
-import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -28,7 +29,7 @@ public final class LLogger {
   private static final String NULL = "null";
 
   private static final String SUFFIX_JAVA = ".java";
-  private static final String DEFAULT_TAG = "LLogger";
+  static final String DEFAULT_TAG = "LLogger";
   private static final String TRACE_CLASS_END = "at com.licola.llogger.LLogger";
 
   private static final String DEFAULT_FILE_PREFIX = "LLogger_";
@@ -43,14 +44,27 @@ public final class LLogger {
   public static final int E = 0x5;
   public static final int A = 0x6;
 
+  private static int STACK_TRACE_INDEX = 3;
+  private static int STACK_TRACE_INDEX_WRAP = 4;//线程的栈层级
+  private static final int JSON_INDENT = 4;
 
-  private static final int STACK_TRACE_INDEX_5 = 5;//线程的栈层级
-  private static final int STACK_TRACE_INDEX_4 = 4;
 
   private static String TAG = DEFAULT_TAG;
   private static File mLogFileDir = null;
   private static boolean mSaveLog = false;
   private static String FILE_PREFIX;
+
+  private static Logger logger;
+
+  static {
+    boolean androidAvailable = AndroidLogger.isAndroidLogAvailable();
+    logger = androidAvailable ? new AndroidLogger() : new JavaLogger();
+    if (androidAvailable) {
+      //android 环境的 StackTraceElement 多一层dalvik.system.VMStack
+      STACK_TRACE_INDEX++;
+      STACK_TRACE_INDEX_WRAP++;
+    }
+  }
 
   public static void init(boolean showLog) {
     init(showLog, DEFAULT_TAG);
@@ -167,8 +181,27 @@ public final class LLogger {
       return;
     }
 
-    String headString = wrapperContent(STACK_TRACE_INDEX_5);
-    JsonLog.printJson(TAG, headString, object);
+    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
+
+    String message = null;
+
+    try {
+      if (object instanceof JSONObject) {
+        message = ((JSONObject) object).toString(JSON_INDENT);
+      } else if (object instanceof JSONArray) {
+        message = ((JSONArray) object).toString(JSON_INDENT);
+      } else {
+        message = object.toString();
+      }
+    } catch (JSONException e) {
+      logger.log(E, TAG, getStackTraceString(e));
+    }
+
+    if (message != null) {
+      message = headString + LLogger.LINE_SEPARATOR + message;
+      logger.log(D, TAG, message);
+    }
+
   }
 
   private static void printLog(int type, Object... objects) {
@@ -176,9 +209,9 @@ public final class LLogger {
       return;
     }
 
-    String headString = wrapperContent(STACK_TRACE_INDEX_5);
+    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
     String msg = (objects == null) ? NULL : getObjectsString(objects);
-    BaseLog.printDefault(type, TAG, headString + msg);
+    logger.log(type, TAG, headString + msg);
 
     if (mSaveLog) {
       printFile(headString, msg);
@@ -197,8 +230,7 @@ public final class LLogger {
     try {
       FileLog.printFile(logFile, timeFormat, headString, msg);
     } catch (IOException e) {
-      e.printStackTrace();
-      Log.e(TAG, "log写本地文件失败", e);
+      logger.log(E, TAG, "log printFile failed :" + LINE_SEPARATOR + getStackTraceString(e));
     }
   }
 
@@ -209,13 +241,34 @@ public final class LLogger {
     if (!file.exists()) {
       try {
         file.createNewFile();
-        Log.i(TAG, "create log file local:" + file.getAbsolutePath());
+        logger.log(I, TAG, "create log file local:" + file.getAbsolutePath());
         return file;
       } catch (IOException e) {
         e.printStackTrace();
+        logger.log(E, TAG, "log create file failed :" + LINE_SEPARATOR + getStackTraceString(e));
       }
     }
     return file;
+  }
+
+  public static String getStackTraceString(Throwable tr) {
+    if (tr == null) {
+      return "";
+    }
+
+    Throwable t = tr;
+    while (t != null) {
+      if (t instanceof UnknownHostException) {
+        return "";
+      }
+      t = t.getCause();
+    }
+
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    tr.printStackTrace(pw);
+    pw.flush();
+    return sw.toString();
   }
 
   private static void printStackTrace() {
@@ -241,8 +294,8 @@ public final class LLogger {
     }
 
     String msg = builder.toString();
-    String headString = wrapperContent(STACK_TRACE_INDEX_4);
-    BaseLog.printDefault(D, TAG, headString + msg);
+    String headString = wrapperContent(STACK_TRACE_INDEX);
+    logger.log(D, TAG, headString + msg);
   }
 
 
@@ -273,7 +326,7 @@ public final class LLogger {
       lineNumber = 0;
     }
 
-    return " [ ("
+    return "[ ("
         + classFileName
         + ':'
         + lineNumber
