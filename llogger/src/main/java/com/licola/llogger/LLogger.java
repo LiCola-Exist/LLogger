@@ -35,8 +35,6 @@ public final class LLogger {
   private static final String DEFAULT_FILE_PREFIX = "LLogger_";
   private static final String FILE_FORMAT = ".log";
 
-  private static boolean mShowLog = true;
-
   public static final int V = 0x1;
   public static final int D = 0x2;
   public static final int I = 0x3;
@@ -47,7 +45,7 @@ public final class LLogger {
   private static int STACK_TRACE_INDEX_WRAP = 4;//线程的栈层级
   private static final int JSON_INDENT = 4;
 
-
+  private static boolean mShowLog = true;
   private static String TAG = DEFAULT_TAG;
   private static File mLogFileDir = null;
   private static boolean mSaveLog = false;
@@ -64,15 +62,33 @@ public final class LLogger {
     }
   }
 
+  /**
+   * 配置方法
+   *
+   * @param showLog true：打印log false：不打印
+   */
   public static void init(boolean showLog) {
     init(showLog, DEFAULT_TAG);
   }
 
+  /**
+   * 配置方法
+   *
+   * @param showLog showLog true：打印log false：不打印
+   * @param tag log的tag显示
+   */
   public static void init(boolean showLog, String tag) {
     mShowLog = showLog;
     TAG = tag;
   }
 
+  /**
+   * 配置方法
+   *
+   * @param showLog showLog true：打印log false：不打印
+   * @param tag log的tag显示
+   * @param logFileDir log
+   */
   public static void init(boolean showLog, String tag, File logFileDir) {
     init(showLog, tag, logFileDir, DEFAULT_FILE_PREFIX);
   }
@@ -80,9 +96,24 @@ public final class LLogger {
   public static void init(boolean showLog, String tag, File logFileDir, String logFilePrefix) {
     mShowLog = showLog;
     TAG = tag;
-    mSaveLog = logFileDir != null;
+    checkLogDirFile(logFileDir);
+    mSaveLog = true;
     mLogFileDir = logFileDir;
     FILE_PREFIX = logFilePrefix;
+  }
+
+  private static void checkLogDirFile(File logFileDir) {
+    if (logFileDir == null) {
+      throw new NullPointerException("logFileDir == null");
+    }
+
+    if (!logFileDir.exists()) {
+      throw new IllegalArgumentException("logFileDir file not exists");
+    }
+
+    if (!logFileDir.isDirectory()) {
+      throw new IllegalArgumentException("logFileDir must be dir try to re-create");
+    }
   }
 
   public static void v() {

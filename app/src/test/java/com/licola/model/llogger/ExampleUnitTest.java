@@ -3,6 +3,8 @@ package com.licola.model.llogger;
 import com.licola.llogger.LLogger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 
 /**
@@ -13,9 +15,13 @@ import org.junit.Test;
 public class ExampleUnitTest {
 
   @Test
-  public void LLoggerTest() {
+  public void LLoggerTest() throws JSONException {
     LLogger.v("verbose");
     LLogger.d("debug");
+    JSONObject jsonObject=new JSONObject();
+    jsonObject.put("key","value");
+    jsonObject.put("key1","value1");
+    LLogger.json(jsonObject);
   }
 
 
