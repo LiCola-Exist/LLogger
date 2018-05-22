@@ -66,8 +66,10 @@ public class MyApplication extends Application {
 ![log信息](https://github.com/LiCola/LLogger/blob/master/image/log.png)
 
 # 关于log写入本地文件
-可以看到上图的```llogger_2018-05-22_10.log```log文件信息，
-文件名格式：文件名前缀_日期信息_小时信息。
+可以看到上图的```llogger_2018-05-22_10.log```log文件信息。
+
+**文件名格式：文件名前缀_日期信息_小时信息**
+
 因为只要开启写入本地文件功能，程序运行就会log日志打印，为了避免信息太过冗长。
 采用小时为节点，写入到本地文件，效果如下
 
