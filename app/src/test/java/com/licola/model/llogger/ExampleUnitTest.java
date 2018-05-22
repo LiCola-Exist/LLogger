@@ -14,9 +14,7 @@ public class ExampleUnitTest {
 
   @Test
   public void LLoggerTest() {
-    System.out.println("05-21 14:54:58.039 17473-17473 D/Demo: [ (ExampleUnitTest.java:17)#lloggerTest ] ");
-    System.out.println("05-21 14:54:58.039 17473-17473 D/Demo: [ (ExampleUnitTest.java:18)#lloggerTest ] debug");
-//    System.out.println("05-21 18:43:30:296 main D/LLogger:   [ (ExampleUnitTest.java:19)#lloggerTest ] test java");
+    LLogger.v("verbose");
     LLogger.d("debug");
   }
 

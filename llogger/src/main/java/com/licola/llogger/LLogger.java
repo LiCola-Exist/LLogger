@@ -44,7 +44,6 @@ public final class LLogger {
   public static final int E = 0x5;
   public static final int A = 0x6;
 
-  private static int STACK_TRACE_INDEX = 3;
   private static int STACK_TRACE_INDEX_WRAP = 4;//线程的栈层级
   private static final int JSON_INDENT = 4;
 
@@ -61,7 +60,6 @@ public final class LLogger {
     logger = androidAvailable ? new AndroidLogger() : new JavaLogger();
     if (androidAvailable) {
       //android 环境的 StackTraceElement 多一层dalvik.system.VMStack
-      STACK_TRACE_INDEX++;
       STACK_TRACE_INDEX_WRAP++;
     }
   }
@@ -211,18 +209,19 @@ public final class LLogger {
 
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
     String msg = (objects == null) ? NULL : getObjectsString(objects);
-    logger.log(type, TAG, headString + msg);
 
     if (mSaveLog) {
       printFile(headString, msg);
     }
+
+    logger.log(type, TAG, headString + msg);
 
   }
 
   private static void printFile(String headString, String msg) {
 
     long timeMillis = System.currentTimeMillis();
-    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS", Locale.CHINA);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS", Locale.CHINA);
     String timeFormat = dateFormat.format(timeMillis);
 
     File logFile = makeLogFileWithTime(mLogFileDir, timeMillis);
@@ -294,7 +293,7 @@ public final class LLogger {
     }
 
     String msg = builder.toString();
-    String headString = wrapperContent(STACK_TRACE_INDEX);
+    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
     logger.log(D, TAG, headString + msg);
   }
 

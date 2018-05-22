@@ -5,7 +5,7 @@ import android.util.Log;
 /**
  * Created by LiCola on 2018/5/14.
  */
-public class AndroidLogger implements Logger{
+public class AndroidLogger extends Logger {
 
 
   private static final boolean ANDROID_LOG_AVAILABLE;
@@ -15,15 +15,15 @@ public class AndroidLogger implements Logger{
     try {
       android = Class.forName("android.util.Log") != null;
     } catch (ClassNotFoundException e) {
-      //not android environment
+      //java environment
     }
 
-    if (android){
+    if (android) {
       //Test环境 有android的mock
       try {
-        Log.i(LLogger.DEFAULT_TAG,"android environment");
-      }catch (RuntimeException e){
-        android=false;
+        android = Log.i(LLogger.DEFAULT_TAG, "LLogger in android environment") > 0;
+      } catch (RuntimeException e) {
+        android = false;
       }
     }
 
@@ -35,26 +35,7 @@ public class AndroidLogger implements Logger{
     return ANDROID_LOG_AVAILABLE;
   }
 
-
-  @Override
-  public void log(int type, String tag, String msg) {
-    int index = 0;
-    int length = msg.length();
-    int countOfSub = length / MAX_LENGTH;
-
-    if (countOfSub > 0) {
-      for (int i = 0; i < countOfSub; i++) {
-        String sub = msg.substring(index, index + MAX_LENGTH);
-        printSub(type, tag, sub);
-        index += MAX_LENGTH;
-      }
-      printSub(type, tag, msg.substring(index, length));
-    } else {
-      printSub(type, tag, msg);
-    }
-  }
-
-  private static void printSub(int type, String tag, String sub) {
+  public void logType(int type, String tag, String sub) {
     switch (type) {
       case LLogger.V:
         Log.v(tag, sub);
