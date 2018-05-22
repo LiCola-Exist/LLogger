@@ -77,6 +77,8 @@ public class MyApplication extends Application {
 LLogger内部初始化时判定运行环境，如果是Java环境（比如android单元测试test目录下运行本地测试代码环境），也可以打印出log信息
 ![java环境-log信息](https://github.com/LiCola/LLogger/blob/master/image/java-log.png)
 
+在IDEA的纯Java环境也可以在Run中打印出信息
+
 基本仿照Logcat格式：也是支持点击行号跳转代码
 ```log
 log：05-22 15:05:51.316 main Verbose/LLogger: [ (ExampleUnitTest.java:19)#LLoggerTest ] verbose
@@ -84,4 +86,4 @@ log：05-22 15:05:51.316 main Verbose/LLogger: [ (ExampleUnitTest.java:19)#LLogg
 ```
 
 # 参考
-本项目基础参考自：https://github.com/ZhaoKaiQiang/KLog，感谢提供基础思路。
+本项目基础参考自：[KLog](https://github.com/ZhaoKaiQiang/KLog)。感谢提供基础思路。
