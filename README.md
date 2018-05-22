@@ -62,20 +62,27 @@ public class MyApplication extends Application {
 ```
 
 # 效果图
-`![log信息](https://github.com/LiCola/LLogger/image/log.png)`
+
+![log信息](https://github.com/LiCola/LLogger/image/log.png)
 
 # 关于log写入本地文件
 可以看到上图的```llogger_2018-05-22_10.log```log文件信息，
 文件名格式：文件名前缀_日期信息_小时信息。
 因为只要开启写入本地文件功能，程序运行就会log日志打印，为了避免信息太过冗长。
 采用小时为节点，写入到本地文件，效果如下
-`![log文件信息](https://github.com/LiCola/LLogger/image/log-file.png)`
+
+![log文件信息](https://github.com/LiCola/LLogger/image/log-file.png)
 
 # 关于Java环境
 LLogger内部初始化时判定运行环境，如果是Java环境（比如android单元测试test目录下运行本地测试代码环境），也可以打印出log信息
-`![java环境-log信息](https://github.com/LiCola/LLogger/image/java-log.png)`
+
+![java环境-log信息](https://github.com/LiCola/LLogger/image/java-log.png)
+
 基本仿照Logcat格式：也是支持点击行号跳转代码
 ```log
 log：05-22 15:05:51.316 main Verbose/LLogger: [ (ExampleUnitTest.java:19)#LLoggerTest ] verbose
 格式：日期 时间 线程名 log类型 log的Tag：[ (类名:行号)#方法名 ] 参数
 ```
+
+# 参考
+本项目基础参考自：https://github.com/ZhaoKaiQiang/KLog，感谢提供基础思路。
