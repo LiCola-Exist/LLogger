@@ -9,7 +9,6 @@ import java.io.IOException;
  */
 public class FileLog {
 
-
   public static void printFile(File logFile, String time, String headString, String msg)
       throws IOException {
 

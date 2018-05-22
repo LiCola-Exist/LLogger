@@ -2,6 +2,7 @@ package com.licola.llogger;
 
 /**
  * Created by LiCola on 2018/5/21.
+ * 抽象的日志打印工具
  */
 abstract class Logger {
 

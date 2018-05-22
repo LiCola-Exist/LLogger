@@ -4,6 +4,8 @@ import android.util.Log;
 
 /**
  * Created by LiCola on 2018/5/14.
+ * Android环境下的log日志打印工具类
+ * 并提供android环境判断
  */
 public class AndroidLogger extends Logger {
 

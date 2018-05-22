@@ -6,6 +6,7 @@ import java.util.Locale;
 
 /**
  * Created by LiCola on 2018/5/21.
+ * Java环境下的log日志打印工具类
  */
 public class JavaLogger extends Logger {
 
