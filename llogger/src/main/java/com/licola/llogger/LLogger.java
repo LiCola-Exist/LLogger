@@ -1,39 +1,42 @@
 package com.licola.llogger;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
+import java.io.FileNotFoundException;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * Log日志工具类
- * 1：支持打印类名，行号，方法等信息，且能够点击跳转到具体代码
- * 2：支持变长参数打印，json格式化打印
- * 3：支持log保存到本地文件，且使用时间间隔防止日志文件过长
+ * 1:支持打印行号、方法、内部类名
+ * 2:支持在Logcat中的点击行号跳转代码
+ * 3:支持空参，单一参数，多参数打印
+ * 4:支持log日志信息写入本地文件,以时间为节点，避免日志过长，且支持打包log文件
+ * 5:支持Java环境log打印，如在android的test本地单元测试中打印
+ * 6:支持JSON字符串、JSON对象、JSON数组友好格式化打印
+ * 7:支持超长4000+字符串长度打印
  *
  * 基于：https://github.com/ZhaoKaiQiang/KLog项目改造
  */
 
 public final class LLogger {
 
-  public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String DEFAULT_MESSAGE = "execute";
   private static final String ARGUMENTS = "argument";
   private static final String NULL = "null";
 
   private static final String SUFFIX_JAVA = ".java";
-  static final String DEFAULT_TAG = "LLogger";
-  private static final String TRACE_CLASS_END = "at com.licola.llogger.LLogger";
 
+  static final String DEFAULT_TAG = "LLogger";
   private static final String DEFAULT_FILE_PREFIX = "LLogger_";
-  private static final String FILE_FORMAT = ".log";
+  private static final long FETCH_ALL_LOG = 0;
+  private static final long HOUR_TIME = 60 * 60 * 1000;
+
+  private static int STACK_TRACE_INDEX_WRAP = 4;//线程的栈层级
+  private static final int JSON_INDENT = 4;
 
   public static final int V = 0x1;
   public static final int D = 0x2;
@@ -42,14 +45,12 @@ public final class LLogger {
   public static final int E = 0x5;
   public static final int A = 0x6;
 
-  private static int STACK_TRACE_INDEX_WRAP = 4;//线程的栈层级
-  private static final int JSON_INDENT = 4;
 
-  private static boolean mShowLog = true;
+  private static boolean mShowLog = true;//默认显示log
   private static String TAG = DEFAULT_TAG;
   private static File mLogFileDir = null;
   private static boolean mSaveLog = false;
-  private static String FILE_PREFIX;
+  static String FILE_PREFIX = DEFAULT_FILE_PREFIX;
 
   private static Logger logger;
 
@@ -107,12 +108,8 @@ public final class LLogger {
       throw new NullPointerException("logFileDir == null");
     }
 
-    if (!logFileDir.exists()) {
-      throw new IllegalArgumentException("logFileDir file not exists");
-    }
-
-    if (!logFileDir.isDirectory()) {
-      throw new IllegalArgumentException("logFileDir must be dir try to re-create");
+    if (logFileDir.exists() && !logFileDir.isDirectory()) {
+      throw new IllegalArgumentException("logFileDir must be directory");
     }
   }
 
@@ -204,6 +201,22 @@ public final class LLogger {
     printJson(jsonFormat);
   }
 
+  private static void printLog(int type, Object... objects) {
+    if (!mShowLog) {
+      return;
+    }
+
+    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
+    String msg = (objects == null) ? NULL : getObjectsString(objects);
+
+    if (mSaveLog) {
+      printFile(headString, msg);
+    }
+
+    logger.log(type, TAG, headString + msg);
+
+  }
+
   private static void printJson(Object object) {
 
     if (!mShowLog) {
@@ -223,7 +236,7 @@ public final class LLogger {
         message = object.toString();
       }
     } catch (JSONException e) {
-      logger.log(E, TAG, getStackTraceString(e));
+      logger.log(E, TAG, StackTraceUtils.getStackTraceString(e));
     }
 
     if (message != null) {
@@ -233,99 +246,95 @@ public final class LLogger {
 
   }
 
-  private static void printLog(int type, Object... objects) {
-    if (!mShowLog) {
-      return;
-    }
-
-    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
-    String msg = (objects == null) ? NULL : getObjectsString(objects);
-
-    if (mSaveLog) {
-      printFile(headString, msg);
-    }
-
-    logger.log(type, TAG, headString + msg);
-
-  }
-
   private static void printFile(String headString, String msg) {
 
     long timeMillis = System.currentTimeMillis();
-    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS", Locale.CHINA);
-    String timeFormat = dateFormat.format(timeMillis);
-
-    File logFile = makeLogFileWithTime(mLogFileDir, timeMillis);
-
-    try {
-      FileLog.printFile(logFile, timeFormat, headString, msg);
-    } catch (IOException e) {
-      logger.log(E, TAG, "log printFile failed :" + LINE_SEPARATOR + getStackTraceString(e));
-    }
+    FileLog.printFile(mLogFileDir, timeMillis, logger, headString, msg);
   }
 
-  private static File makeLogFileWithTime(File LogFileDir, long timeMillis) {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH", Locale.CHINA);
-    String timeFormat = dateFormat.format(timeMillis);
-    File file = new File(LogFileDir, FILE_PREFIX + timeFormat + FILE_FORMAT);
-    if (!file.exists()) {
-      try {
-        file.createNewFile();
-        logger.log(I, TAG, "create log file local:" + file.getAbsolutePath());
-        return file;
-      } catch (IOException e) {
-        e.printStackTrace();
-        logger.log(E, TAG, "log create file failed :" + LINE_SEPARATOR + getStackTraceString(e));
-      }
-    }
-    return file;
+  /**
+   * 获取日志目录下的日志文件，空参没有限定时间，即所有的log日志文件
+   *
+   * @return 符合限定时间的文件列表
+   * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
+   */
+  public static List<File> fetchLogZip() throws FileNotFoundException {
+    return fetchLogZip(FETCH_ALL_LOG);
   }
 
-  public static String getStackTraceString(Throwable tr) {
-    if (tr == null) {
-      return "";
-    }
-
-    Throwable t = tr;
-    while (t != null) {
-      if (t instanceof UnknownHostException) {
-        return "";
-      }
-      t = t.getCause();
-    }
-
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    tr.printStackTrace(pw);
-    pw.flush();
-    return sw.toString();
+  /**
+   * 获取当前小时的前lastHour小时的log文件列表
+   *
+   * @param lastHour lastHour 当前时间的前几个小时，如果为0表示当前小时
+   * @return 符合限定时间的文件列表
+   * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
+   */
+  public static List<File> fetchLogZip(int lastHour) throws FileNotFoundException {
+    long curTime = System.currentTimeMillis();
+    long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
+    return FileLog.fetchLogFiles(mLogFileDir, beginTime);
   }
+
+  /**
+   * 获取限定时间节点的log文件列表
+   *
+   * @param beginTime 限定的日志开始时间 即[beginTime(开始时间)~当前时间]，如果为0表示没有时间限制，返回所有的log文件列表
+   * @return 符合限定时间的文件列表
+   * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
+   */
+  public static List<File> fetchLogZip(long beginTime) throws FileNotFoundException {
+    return FileLog.fetchLogFiles(mLogFileDir, beginTime);
+  }
+
+  /**
+   * 压缩打包没有时间限制的log文件，即打包所有log文件
+   *
+   * @param zipFileName 压缩包文件名
+   * @return 压缩的log文件zip
+   * @throws FileNotFoundException 没有找到应当被打包的log文件，即日志目录为空
+   */
+  public static File makeLogZipFile(String zipFileName)
+      throws FileNotFoundException {
+    return makeLogZipFile(zipFileName, FETCH_ALL_LOG);
+  }
+
+
+  /**
+   * 压缩打包当前小时的前lastHour小时的log文件
+   *
+   * @param zipFileName 压缩包文件名
+   * @param lastHour 当前时间的前几个小时，如果为0表示当前小时
+   * @return 压缩的log文件zip
+   * @throws FileNotFoundException 没有找到应当被打包的log文件，即限定的时间节点到当前没有日志内容
+   */
+  public static File makeLogZipFile(String zipFileName, int lastHour)
+      throws FileNotFoundException {
+    long curTime = System.currentTimeMillis();
+    long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
+    return makeLogZipFile(zipFileName, beginTime);
+  }
+
+  /**
+   * 压缩打包限定时间节点的log文件
+   *
+   * @param zipFileName 压缩包文件名
+   * @param beginTime 限定的日志开始时间 即[beginTime(开始时间)~当前时间]，如果为0表示没有时间限制，打包所有的log文件
+   * @return 压缩的log文件zip
+   * @throws FileNotFoundException 没有找到应当被打包的log文件，即限定的时间节点到当前没有日志内容
+   */
+  public static File makeLogZipFile(String zipFileName, long beginTime)
+      throws FileNotFoundException {
+    return FileLog.makeZipFile(mLogFileDir, zipFileName, beginTime);
+  }
+
 
   private static void printStackTrace() {
     if (!mShowLog) {
       return;
     }
 
-    Throwable throwable = new Throwable();
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter printWriter = new PrintWriter(stringWriter);
-    throwable.printStackTrace(printWriter);
-    printWriter.flush();
-    String message = stringWriter.toString();
-
-    String[] traces = message.split("\\n\\t");
-    StringBuilder builder = new StringBuilder();
-    builder.append("\n");
-    for (String trace : traces) {
-      if (trace.contains(TRACE_CLASS_END)) {
-        continue;
-      }
-      builder.append(trace).append("\n");
-    }
-
-    String msg = builder.toString();
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
-    logger.log(D, TAG, headString + msg);
+    logger.log(D, TAG, headString + StackTraceUtils.getStackTrace());
   }
 
 

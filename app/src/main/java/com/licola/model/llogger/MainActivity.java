@@ -1,17 +1,11 @@
 package com.licola.model.llogger;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.licola.llogger.LLogger;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,59 +84,22 @@ public class MainActivity extends AppCompatActivity {
   }
 
   public void onClickZipLogFile(View view) {
-    File logFileDir = new File(getCacheDir(), MyApplication.LOG_FILE_DIR);
-    File[] files = logFileDir.listFiles();
-
-    File zip = makeZipFile("log.zip",files);
-    if (zip == null) {
-      return;
+    try {
+      File logZipFile = LLogger.makeLogZipFile("log.zip");
+      LLogger.d("get log zip file:" + logZipFile.getAbsolutePath());
+    } catch (FileNotFoundException e) {
+      LLogger.e(e);
     }
-
-    LLogger.d(zip.getAbsolutePath());
   }
 
-  @Nullable
-  private File makeZipFile(String zipFileName,File[] files) {
-    File zip = new File(getCacheDir(), zipFileName);
+  public void onClickZipLogFileWithTime(View view) {
 
-    FileOutputStream zipFileOutputStream = null;
     try {
-      zipFileOutputStream = new FileOutputStream(zip);
+      File logZipFile = LLogger.makeLogZipFile("log.zip", 0);
+      LLogger.d("get log zip file:" + logZipFile.getAbsolutePath());
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
+      LLogger.e(e);
     }
-
-    if (zipFileOutputStream == null) {
-      return null;
-    }
-    ZipOutputStream zipOutputStream = new ZipOutputStream(zipFileOutputStream);
-
-    try {
-      for (File file : files) {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        ZipEntry zipEntry = new ZipEntry(file.getName());
-        zipOutputStream.putNextEntry(zipEntry);
-
-        byte[] bytes = new byte[1024];
-        int length;
-        while ((length = fileInputStream.read(bytes)) >= 0) {
-          zipOutputStream.write(bytes, 0, length);
-        }
-        fileInputStream.close();
-      }
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    try {
-      zipOutputStream.close();
-      zipFileOutputStream.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return zip;
   }
 
   class MyRunnable implements Runnable {

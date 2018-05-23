@@ -24,9 +24,6 @@ public class MyApplication extends Application {
 
     //建议在cache下创建二级目录 存放log文件 避免cache中文件杂乱
     File logDir = new File(getCacheDir(), LOG_FILE_DIR);
-    if (!logDir.exists()) {
-      logDir.mkdir();
-    }
 //    LLogger.init(showLog, TAG, logDir);//打开log显示 配置Tag log信息写入本地目录
     LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件后缀
   }
