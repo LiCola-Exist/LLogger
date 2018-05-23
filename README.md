@@ -8,7 +8,7 @@
  - 支持打印行号、方法、内部类名
  - 支持在Logcat中的点击行号跳转代码
  - 支持空参，单一参数，多参数打印
- - 支持log日志信息写入本地文件
+ - 支持log日志信息写入本地文件,以时间为节点，避免日志内容过长，且支持获取和压缩打包log文件
  - 支持Java环境log打印，如在android的test本地单元测试中打印
  - 支持JSON字符串、JSON对象、JSON数组友好格式化打印
  - 支持超长4000+字符串长度打印
@@ -16,7 +16,7 @@
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.2.1"
+  implementation "com.licola:llogger:1.3.1"
 ```
 
 # 使用
@@ -37,7 +37,7 @@ LLogger默认打印log，默认tag为```LLogger```，默认不写入log文件，
  */
 public class MyApplication extends Application {
 
-  public static final String LOG_FILE_PREFIX = "llogger_";
+  public static final String LOG_FILE_PREFIX = "LLogger_";
   public static final String LOG_FILE_DIR = "log-file";
 
   private static final boolean showLog = BuildConfig.DEBUG;
@@ -50,13 +50,10 @@ public class MyApplication extends Application {
 //    LLogger.init(showLog);//打开log显示
 //    LLogger.init(showLog, TAG);//打开log显示 配置Tag
 
-    //建议在cache下创建二级目录 存放log文件 避免cache中文件杂乱
+    //建议在cache下指定二级目录 存放log文件 避免cache中文件杂乱
     File logDir = new File(getCacheDir(), LOG_FILE_DIR);
-    if (!logDir.exists()) {
-      logDir.mkdir();
-    }
 //    LLogger.init(showLog, TAG, logDir);//打开log显示 配置Tag log信息写入本地目录
-    LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件名前缀
+    LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件后缀
   }
 }
 ```
@@ -65,7 +62,7 @@ public class MyApplication extends Application {
 
 ![log信息](https://github.com/LiCola/LLogger/blob/master/image/log.png)
 
-# 关于log写入本地文件
+# 关于log本地文件
 可以看到上图的```llogger_2018-05-22_10.log```log文件信息。
 
 **文件名格式：文件名前缀_日期信息_小时信息**
@@ -74,6 +71,17 @@ public class MyApplication extends Application {
 采用小时为节点，写入到本地文件，效果如下
 
 ![log文件信息](https://github.com/LiCola/LLogger/blob/master/image/log-file.png)
+
+# 获取log文件
+因为log文件以时间为节点分开，会存在大量的日志文件，所以提供静态方法获取日志文件列表或压缩日志文件
+```java
+    List<File> files = LLogger.fetchLogList();//获取所有的日志文件列表
+    List<File> files = LLogger.fetchLogList(24);//获取前24小时内的日志文件列表
+
+    File logZipFile = LLogger.makeLogZipFile("log.zip");//打包所有的日志文件
+    File logZipFile = LLogger.makeLogZipFile("log.zip", 0);//打包当前时间的日志文件 ，如果为0表示当前小时
+
+```
 
 # 关于Java环境
 LLogger内部初始化时判定运行环境，如果是Java环境（比如android单元测试test目录下运行本地测试代码环境），也可以打印出log信息

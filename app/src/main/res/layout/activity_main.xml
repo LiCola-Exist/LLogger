@@ -54,6 +54,11 @@
   <Button
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:onClick="onClickFetchLogList"
+    android:text="fetch-log-list" />
+  <Button
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:onClick="onClickZipLogFile"
     android:text="zip-log-file-all" />
   <Button

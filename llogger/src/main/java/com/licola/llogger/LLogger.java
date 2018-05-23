@@ -258,8 +258,8 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
-  public static List<File> fetchLogZip() throws FileNotFoundException {
-    return fetchLogZip(FETCH_ALL_LOG);
+  public static List<File> fetchLogList() throws FileNotFoundException {
+    return fetchLogList(FETCH_ALL_LOG);
   }
 
   /**
@@ -269,7 +269,7 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
-  public static List<File> fetchLogZip(int lastHour) throws FileNotFoundException {
+  public static List<File> fetchLogList(int lastHour) throws FileNotFoundException {
     long curTime = System.currentTimeMillis();
     long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
     return FileLog.fetchLogFiles(mLogFileDir, beginTime);
@@ -282,7 +282,7 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
-  public static List<File> fetchLogZip(long beginTime) throws FileNotFoundException {
+  public static List<File> fetchLogList(long beginTime) throws FileNotFoundException {
     return FileLog.fetchLogFiles(mLogFileDir, beginTime);
   }
 

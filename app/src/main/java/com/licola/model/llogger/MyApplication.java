@@ -9,7 +9,7 @@ import java.io.File;
  */
 public class MyApplication extends Application {
 
-  public static final String LOG_FILE_PREFIX = "llogger_";
+  public static final String LOG_FILE_PREFIX = "LLogger_";
   public static final String LOG_FILE_DIR = "log-file";
 
   private static final boolean showLog = BuildConfig.DEBUG;
@@ -22,7 +22,7 @@ public class MyApplication extends Application {
 //    LLogger.init(showLog);//打开log显示
 //    LLogger.init(showLog, TAG);//打开log显示 配置Tag
 
-    //建议在cache下创建二级目录 存放log文件 避免cache中文件杂乱
+    //建议在cache下指定二级目录 存放log文件 避免cache中文件杂乱
     File logDir = new File(getCacheDir(), LOG_FILE_DIR);
 //    LLogger.init(showLog, TAG, logDir);//打开log显示 配置Tag log信息写入本地目录
     LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件后缀

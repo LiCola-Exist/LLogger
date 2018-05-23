@@ -6,6 +6,7 @@ import android.view.View;
 import com.licola.llogger.LLogger;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,7 +84,24 @@ public class MainActivity extends AppCompatActivity {
     myRunnable.run();
   }
 
+  public void onClickFetchLogList(View view) {
+    try {
+      List<File> logFileAll = LLogger.fetchLogList();
+      LLogger.d(logFileAll);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      List<File> logFileList = LLogger.fetchLogList(24);
+      LLogger.d(logFileList);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+  }
+
   public void onClickZipLogFile(View view) {
+
     try {
       File logZipFile = LLogger.makeLogZipFile("log.zip");
       LLogger.d("get log zip file:" + logZipFile.getAbsolutePath());
@@ -95,12 +113,13 @@ public class MainActivity extends AppCompatActivity {
   public void onClickZipLogFileWithTime(View view) {
 
     try {
-      File logZipFile = LLogger.makeLogZipFile("log.zip", 0);
+      File logZipFile = LLogger.makeLogZipFile("log.zip", 0);//当前时间的前几个小时，如果为0表示当前小时
       LLogger.d("get log zip file:" + logZipFile.getAbsolutePath());
     } catch (FileNotFoundException e) {
       LLogger.e(e);
     }
   }
+
 
   class MyRunnable implements Runnable {
 
