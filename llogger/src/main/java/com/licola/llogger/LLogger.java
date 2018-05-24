@@ -2,6 +2,7 @@ package com.licola.llogger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -290,11 +291,11 @@ public final class LLogger {
    * 压缩打包没有时间限制的log文件，即打包所有log文件
    *
    * @param zipFileName 压缩包文件名
-   * @return 压缩的log文件zip
-   * @throws FileNotFoundException 没有找到应当被打包的log文件，即日志目录为空
+   * @throws IOException 压缩文件操作异常
+   * @see com.licola.llogger.LLogger#fetchLogList()
    */
   public static File makeLogZipFile(String zipFileName)
-      throws FileNotFoundException {
+      throws IOException {
     return makeLogZipFile(zipFileName, FETCH_ALL_LOG);
   }
 
@@ -305,10 +306,11 @@ public final class LLogger {
    * @param zipFileName 压缩包文件名
    * @param lastHour 当前时间的前几个小时，如果为0表示当前小时
    * @return 压缩的log文件zip
-   * @throws FileNotFoundException 没有找到应当被打包的log文件，即限定的时间节点到当前没有日志内容
+   * @throws IOException 压缩文件操作异常
+   * @see com.licola.llogger.LLogger#fetchLogList(int)
    */
   public static File makeLogZipFile(String zipFileName, int lastHour)
-      throws FileNotFoundException {
+      throws IOException {
     long curTime = System.currentTimeMillis();
     long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
     return makeLogZipFile(zipFileName, beginTime);
@@ -320,10 +322,11 @@ public final class LLogger {
    * @param zipFileName 压缩包文件名
    * @param beginTime 限定的日志开始时间 即[beginTime(开始时间)~当前时间]，如果为0表示没有时间限制，打包所有的log文件
    * @return 压缩的log文件zip
-   * @throws FileNotFoundException 没有找到应当被打包的log文件，即限定的时间节点到当前没有日志内容
+   * @throws IOException 压缩文件操作异常
+   * @see com.licola.llogger.LLogger#fetchLogList(long)
    */
   public static File makeLogZipFile(String zipFileName, long beginTime)
-      throws FileNotFoundException {
+      throws IOException {
     return FileLog.makeZipFile(mLogFileDir, zipFileName, beginTime);
   }
 

@@ -58,7 +58,7 @@ public class FileLog {
   }
 
   public static File makeZipFile(File logFileDir, String zipFileName, long beginTime)
-      throws FileNotFoundException {
+      throws IOException {
 
     List<File> files = fetchLogFiles(logFileDir, beginTime);
 
@@ -69,49 +69,58 @@ public class FileLog {
       zipFile.delete();
     }
 
-    FileOutputStream zipFileOutputStream = null;
-    try {
-      zipFileOutputStream = new FileOutputStream(zipFile);
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
+    FileOutputStream zipFileOutputStream = new FileOutputStream(zipFile);
 
-    if (zipFileOutputStream == null) {
-      return null;
-    }
     ZipOutputStream zipOutputStream = new ZipOutputStream(zipFileOutputStream);
 
     try {
       for (File file : files) {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        ZipEntry zipEntry = new ZipEntry(file.getName());
-        zipOutputStream.putNextEntry(zipEntry);
-
-        byte[] bytes = new byte[1024];
-        int length;
-        while ((length = fileInputStream.read(bytes)) >= 0) {
-          zipOutputStream.write(bytes, 0, length);
-        }
-        fileInputStream.close();
+        writeZipFile(zipOutputStream, file);
       }
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new IOException("压缩日志文件异常", e);
     }
 
     try {
       zipOutputStream.close();
+    } catch (IOException e) {
+    }
+
+    try {
       zipFileOutputStream.close();
     } catch (IOException e) {
-      e.printStackTrace();
     }
+
     return zipFile;
+  }
+
+  private static void writeZipFile(ZipOutputStream zipOutputStream, File file) throws IOException {
+    FileInputStream fileInputStream = null;
+    try {
+      fileInputStream = new FileInputStream(file);
+      ZipEntry zipEntry = new ZipEntry(file.getName());
+      zipOutputStream.putNextEntry(zipEntry);
+
+      byte[] bytes = new byte[1024];
+      int length;
+      while ((length = fileInputStream.read(bytes)) >= 0) {
+        zipOutputStream.write(bytes, 0, length);
+      }
+    } finally {
+      if (fileInputStream != null) {
+        fileInputStream.close();
+      }
+    }
+
   }
 
 
   public static List<File> fetchLogFiles(File logFileDir, long beginTime)
       throws FileNotFoundException {
+    if (logFileDir == null||!logFileDir.exists()) {
+      throw new FileNotFoundException("logFileDir == null or not exists");
+    }
+
     File[] files = logFileDir.listFiles();
 
     if (files == null || files.length == 0) {
@@ -122,7 +131,7 @@ public class FileLog {
     for (File file : files) {
       String fileName = file.getName();
       if (!fileName.contains(FILE_PREFIX) || !fileName.contains(FILE_FORMAT)) {
-        //去除非log日志 即非固定前缀和固定后缀的文件名
+        //去除非目标日志 即非固定前缀和固定后缀的文件名
         continue;
       }
 
@@ -141,7 +150,7 @@ public class FileLog {
     }
 
     if (logFiles.isEmpty()) {
-      throw new FileNotFoundException("fetchLogFiles return empty");
+      throw new FileNotFoundException("No files meet the conditions of time");
     }
 
     return logFiles;
@@ -152,7 +161,7 @@ public class FileLog {
     try {
       dateFile = DATE_FORMAT_LOG_FILE.parse(timeFileInfo);
     } catch (ParseException e) {
-      e.printStackTrace();
+
     }
 
     return dateFile != null ? dateFile.getTime() : 0;
