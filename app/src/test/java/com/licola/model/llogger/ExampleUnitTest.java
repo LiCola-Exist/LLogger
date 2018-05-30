@@ -24,5 +24,10 @@ public class ExampleUnitTest {
     LLogger.json(jsonObject);
   }
 
+  @Test
+  public void traceTest(){
+    LLogger.trace();
+    LLogger.trace();
+  }
 
 }

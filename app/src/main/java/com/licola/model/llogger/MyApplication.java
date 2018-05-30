@@ -22,7 +22,10 @@ public class MyApplication extends Application {
 //    LLogger.init(showLog);//打开log显示
 //    LLogger.init(showLog, TAG);//打开log显示 配置Tag
 
-    //建议在cache下指定二级目录 存放log文件 避免cache中文件杂乱
+    /**
+     * 1：建议log文件存放在项目内部存储中，避免读写外部存储的权限处理
+     * 2：建议在cache下指定二级目录 存放log文件 避免cache中文件杂乱
+     */
     File logDir = new File(getCacheDir(), LOG_FILE_DIR);
 //    LLogger.init(showLog, TAG, logDir);//打开log显示 配置Tag log信息写入本地目录
     LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件后缀

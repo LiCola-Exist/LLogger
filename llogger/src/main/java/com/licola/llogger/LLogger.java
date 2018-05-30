@@ -211,7 +211,7 @@ public final class LLogger {
     String msg = (objects == null) ? NULL : getObjectsString(objects);
 
     if (mSaveLog) {
-      printFile(headString, msg);
+      printFile(type, TAG, headString + msg);
     }
 
     logger.log(type, TAG, headString + msg);
@@ -247,10 +247,10 @@ public final class LLogger {
 
   }
 
-  private static void printFile(String headString, String msg) {
+  private static void printFile(int type, String tag, String msg) {
 
     long timeMillis = System.currentTimeMillis();
-    FileLog.printFile(mLogFileDir, timeMillis, logger, headString, msg);
+    FileLog.printFile(mLogFileDir, timeMillis, logger, type, tag, msg);
   }
 
   /**
@@ -400,7 +400,33 @@ public final class LLogger {
       Object object = objects[0];
       return object == null ? NULL : object.toString();
     }
+  }
 
+  static String mapperType(int type) {
+    String typeStr;
+    switch (type) {
+      case LLogger.V:
+        typeStr = "Verbose";
+        break;
+      case LLogger.D:
+        typeStr = "Debug";
+        break;
+      case LLogger.I:
+        typeStr = "Info";
+        break;
+      case LLogger.W:
+        typeStr = "Warn";
+        break;
+      case LLogger.E:
+        typeStr = "Error";
+        break;
+      case LLogger.A:
+        typeStr = "Assert";
+        break;
+      default:
+        typeStr = "Unknown";
+    }
+    return typeStr;
   }
 
 }
