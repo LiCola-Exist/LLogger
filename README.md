@@ -79,8 +79,8 @@ public class MyApplication extends Application {
 
 基本仿照Logcat格式：也是支持点击行号跳转代码
 ```log
-log：06-04 18:46:36.344 main Verbose/Java: [ (JavaMain.java:15)#main ] execute
-格式：日期 时间 线程名 log类型 Tag：[ (类名:行号)#方法名 ] 参数
+log：18:26:04.068 main Verbose/Demo: [ (MainActivity.java:25)#onClickLogV ] verbose
+格式：时间 线程名 log类型/Tag：[ (类名:行号)#方法名 ] 参数
 ```
 
 # 获取log文件
@@ -97,6 +97,12 @@ log：06-04 18:46:36.344 main Verbose/Java: [ (JavaMain.java:15)#main ] execute
 # 关于Java环境
 LLogger内部初始化时判定运行环境，如果是Java环境，也可以打印出log信息
 ![java环境-log信息](https://github.com/LiCola/LLogger/blob/master/image/java-log.png)
+
+基本仿照Logcat格式：也是支持点击行号跳转代码
+```log
+log：06-04 19:02:18.971 main Debug/Java: [ (JavaMain.java:17)#main ] execute
+格式：日期 时间 线程名 log类型/Tag：[ (类名:行号)#方法名 ] 参数
+```
 
 具体比如在IDEA的纯Java环境也可以在Run中打印出丰富的信息
 
