@@ -11,7 +11,8 @@ public class JavaMain {
 
   public static void main(String[] args){
 
-    LLogger.init(true, "Java", new File("log"));
+    File logDir=new File("log");
+    LLogger.init(true, "Java", logDir);
     LLogger.v();
     LLogger.d();
     LLogger.d("debug");

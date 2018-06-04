@@ -73,9 +73,15 @@ public class MyApplication extends Application {
 **文件名格式：文件名前缀_日期信息_小时信息**
 
 采用小时为节点，写入到本地文件，是为了避免信息太过冗长。
-效果如下
+效果如下:
 
 ![log文件信息](https://github.com/LiCola/LLogger/blob/master/image/log-file.png)
+
+基本仿照Logcat格式：也是支持点击行号跳转代码
+```log
+log：06-04 18:46:36.344 main Verbose/Java: [ (JavaMain.java:15)#main ] execute
+格式：日期 时间 线程名 log类型 Tag：[ (类名:行号)#方法名 ] 参数
+```
 
 # 获取log文件
 因为log文件以时间为节点分开，会存在大量的日志文件，所以提供静态方法获取日志文件列表或压缩日志文件
@@ -93,12 +99,6 @@ LLogger内部初始化时判定运行环境，如果是Java环境，也可以打
 ![java环境-log信息](https://github.com/LiCola/LLogger/blob/master/image/java-log.png)
 
 具体比如在IDEA的纯Java环境也可以在Run中打印出丰富的信息
-
-基本仿照Logcat格式：也是支持点击行号跳转代码
-```log
-log：06-04 18:46:36.344 main Verbose/Java: [ (JavaMain.java:15)#main ] execute
-格式：日期 时间 线程名 log类型 Tag：[ (类名:行号)#方法名 ] 参数
-```
 
 # 参考
 本项目基础参考自：[KLog](https://github.com/ZhaoKaiQiang/KLog)。感谢提供基础思路。
