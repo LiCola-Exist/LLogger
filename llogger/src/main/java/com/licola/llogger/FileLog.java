@@ -1,6 +1,6 @@
 package com.licola.llogger;
 
-import static com.licola.llogger.LLogger.DEFAULT_TAG;
+import static com.licola.llogger.LLogger.TAG;
 import static com.licola.llogger.LLogger.E;
 import static com.licola.llogger.LLogger.FILE_PREFIX;
 import static com.licola.llogger.LLogger.I;
@@ -53,7 +53,7 @@ public class FileLog {
           Locale.CHINA).format(timeMillis);
       writeInfo(logFile, timeInfo, type, tag, msg);
     } catch (IOException e) {
-      logger.log(E, DEFAULT_TAG,
+      logger.log(E, TAG,
           "log info write fail :" + LINE_SEPARATOR + StackTraceUtils.getStackTraceString(e));
     }
   }
@@ -193,7 +193,7 @@ public class FileLog {
 
     if (logFile.exists()) {
       if (!logFile.isFile()) {
-        logger.log(E, DEFAULT_TAG,
+        logger.log(E, TAG,
             "file " + logFile.getAbsolutePath() + " is not file cannot input log");
         return null;
       }
@@ -201,11 +201,11 @@ public class FileLog {
     } else {
       try {
         logFile.createNewFile();
-        logger.log(I, DEFAULT_TAG, "create log file local:" + logFile.getAbsolutePath());
+        logger.log(I, TAG, "create log file local:" + logFile.getAbsolutePath());
         return logFile;
       } catch (IOException e) {
         e.printStackTrace();
-        logger.log(E, DEFAULT_TAG,
+        logger.log(E, TAG,
             "log create file failed :" + LINE_SEPARATOR + StackTraceUtils.getStackTraceString(e));
       }
     }
@@ -214,14 +214,14 @@ public class FileLog {
 
   private static boolean checkLogDir(File logFileDir, Logger logger) {
     if (logFileDir == null) {
-      logger.log(E, DEFAULT_TAG, "logFileDir == nul");
+      logger.log(E, TAG, "logFileDir == nul");
       return false;
     }
 
     if (!logFileDir.exists()) {
       boolean mkdirs = logFileDir.mkdirs();
       if (!mkdirs) {
-        logger.log(E, DEFAULT_TAG, "logFileDir mkdirs failed");
+        logger.log(E, TAG, "logFileDir mkdirs failed");
         return false;
       }
     }

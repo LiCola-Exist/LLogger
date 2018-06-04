@@ -10,7 +10,7 @@ import java.io.File;
 public class MyApplication extends Application {
 
   public static final String LOG_FILE_PREFIX = "LLogger_";
-  public static final String LOG_FILE_DIR = "log-file";
+  public static final String LOG_FILE_DIR = "log-files";
 
   private static final boolean showLog = BuildConfig.DEBUG;
 

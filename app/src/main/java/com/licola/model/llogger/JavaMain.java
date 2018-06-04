@@ -9,22 +9,12 @@ import org.json.JSONException;
  */
 public class JavaMain {
 
-  public static void main(String[] args) throws JSONException {
+  public static void main(String[] args){
 
-    File file = new File("log");
-    if (!file.exists()) {
-      file.mkdirs();
-    }
-    LLogger.init(true, "Java", file);
-
+    LLogger.init(true, "Java", new File("log"));
+    LLogger.v();
     LLogger.d();
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        LLogger.d("thread");
-      }
-    }).start();
-
-
+    LLogger.d("debug");
+    LLogger.trace();
   }
 }

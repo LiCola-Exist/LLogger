@@ -23,7 +23,7 @@ public class AndroidLogger extends Logger {
     if (android) {
       //Test环境 有android的mock
       try {
-        android = Log.i(LLogger.DEFAULT_TAG, "LLogger in android environment") > 0;
+        android = Log.i(LLogger.TAG, "LLogger in android environment") > 0;
       } catch (RuntimeException e) {
         android = false;
       }

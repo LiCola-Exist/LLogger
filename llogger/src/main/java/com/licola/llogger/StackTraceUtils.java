@@ -47,7 +47,7 @@ public class StackTraceUtils {
       if (trace.contains(TRACE_CLASS_END)) {//跳过 LLogger库的代码层
         continue;
       }
-      builder.append(trace).append("\n");
+      builder.append("\t").append(trace).append("\n");
     }
 
     return builder.toString();

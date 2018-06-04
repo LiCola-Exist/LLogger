@@ -26,12 +26,13 @@ public final class LLogger {
   static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String DEFAULT_MESSAGE = "execute";
+  private static final String DEFAULT_TRACE = "trace";
   private static final String ARGUMENTS = "argument";
   private static final String NULL = "null";
 
   private static final String SUFFIX_JAVA = ".java";
 
-  static final String DEFAULT_TAG = "LLogger";
+  private static final String DEFAULT_TAG = "LLogger";
   private static final String DEFAULT_FILE_PREFIX = "LLogger_";
   private static final long FETCH_ALL_LOG = 0;
   private static final long HOUR_TIME = 60 * 60 * 1000;
@@ -48,7 +49,7 @@ public final class LLogger {
 
 
   private static boolean mShowLog = true;//默认显示log
-  private static String TAG = DEFAULT_TAG;
+  static String TAG = DEFAULT_TAG;
   private static File mLogFileDir = null;
   private static boolean mSaveLog = false;
   static String FILE_PREFIX = DEFAULT_FILE_PREFIX;
@@ -187,7 +188,11 @@ public final class LLogger {
   }
 
   public static void trace() {
-    printStackTrace();
+    printStackTrace(DEFAULT_TRACE);
+  }
+
+  public static void trace(String msg) {
+    printStackTrace(msg);
   }
 
   public static void json(JSONObject jsonObject) {
@@ -331,13 +336,13 @@ public final class LLogger {
   }
 
 
-  private static void printStackTrace() {
+  private static void printStackTrace(String msg) {
     if (!mShowLog) {
       return;
     }
 
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
-    logger.log(D, TAG, headString + StackTraceUtils.getStackTrace());
+    logger.log(D, TAG, headString + msg + StackTraceUtils.getStackTrace());
   }
 
 
