@@ -1,5 +1,6 @@
 package com.licola.llogger;
 
+import android.os.Looper;
 import android.util.Log;
 
 /**
@@ -60,5 +61,28 @@ public class AndroidLogger extends Logger {
     }
   }
 
+  private AndroidUIMonitor androidUIMonitor;
+
+
+  @Override
+  void startMonitor(long timeOut) {
+    if (androidUIMonitor == null) {
+      androidUIMonitor = new AndroidUIMonitor(this, getMainLooper(), timeOut);
+    }
+    androidUIMonitor.start();
+  }
+
+  @Override
+  void stopMonitor() {
+    if (androidUIMonitor == null) {
+      return;
+    }
+    androidUIMonitor.stop();
+  }
+
+
+  private Looper getMainLooper() {
+    return Looper.getMainLooper();
+  }
 
 }

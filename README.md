@@ -13,11 +13,12 @@
  - 支持JSON字符串、JSON对象、JSON数组友好格式化打印
  - 支持代码追踪调试，trace()方法打印方法调用栈（看源码效率工具）
  - 支持超长4000+字符串长度打印
+ - 支持UI主线程耗时任务检测(Android环境)，打印耗时任务相关代码行
 
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.0"
+  implementation "com.licola:llogger:1.4.1"
 ```
 
 # 使用
@@ -27,6 +28,7 @@
     LLogger.d("debug");
     LLogger.d("debug", "more info");
     LLogger.trace();//打印方法调用栈
+    LLogger.startMonitor();//开启主线程耗时任务检测
 ```
 
 # 配置
@@ -59,6 +61,10 @@ public class MyApplication extends Application {
      File logDir = new File(getCacheDir(), LOG_FILE_DIR);
  //    LLogger.init(showLog, TAG, logDir);//打开log显示 配置Tag log信息写入本地目录
      LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件后缀
+     
+     //开启主线程耗时任务检测
+     LLogger.startMonitor();
+     
    }
 }
 ```

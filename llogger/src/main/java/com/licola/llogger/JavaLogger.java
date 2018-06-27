@@ -23,5 +23,14 @@ public class JavaLogger extends Logger {
     System.out.println(out);
   }
 
+  @Override
+  void startMonitor(long timeOut) {
+    throw  new UnsupportedOperationException("Java 环境不支持UI线程检测");
+  }
+
+  @Override
+  void stopMonitor() {
+    throw  new UnsupportedOperationException("Java 环境不支持UI线程检测");
+  }
 
 }

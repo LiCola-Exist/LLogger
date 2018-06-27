@@ -1,10 +1,5 @@
 package com.licola.llogger;
 
-import static com.licola.llogger.LLogger.TAG;
-import static com.licola.llogger.LLogger.E;
-import static com.licola.llogger.LLogger.FILE_PREFIX;
-import static com.licola.llogger.LLogger.I;
-import static com.licola.llogger.LLogger.LINE_SEPARATOR;
 import static com.licola.llogger.LLogger.mapperType;
 
 import java.io.File;
@@ -28,40 +23,52 @@ import java.util.zip.ZipOutputStream;
 public class FileLog {
 
   private static final String FILE_FORMAT = ".log";
+  static final String DEFAULT_FILE_PREFIX = "LLogger_";
 
   private static final String DATE_FORMAT_LOG_FILE = "yyyy-MM-dd_HH";
   private static final String DATE_FORMAT_LOG_INFO = "HH:mm:ss.SSS";
 
-  public static void printFile(File logFileDir, long timeMillis, Logger logger, int type,
-      String tag, String msg) {
+  private String logFilePrefix;
+  private File logFileDir;
 
-    if (!checkLogDir(logFileDir, logger)) {
-      return;
-    }
+  public FileLog(File logFileDir, String logFilePrefix) {
+    Utils.checkDirFile(logFileDir);
+    Utils.checkNotEmpty(logFilePrefix);
+    this.logFileDir = logFileDir;
+    this.logFilePrefix = logFilePrefix;
+  }
+
+  public String printFileLog(long timeMillis, int type,
+      String tag, String msg) throws IOException {
+
+    Utils.checkAndCreateDir(logFileDir);
 
     String timeFileInfo = new SimpleDateFormat(DATE_FORMAT_LOG_FILE,
         Locale.CHINA).format(timeMillis);
-    String logFileName = FILE_PREFIX + timeFileInfo + FILE_FORMAT;
+    String logFileName = logFilePrefix + timeFileInfo + FILE_FORMAT;
 
-    File logFile = checkLogFile(new File(logFileDir, logFileName), logger);
-    if (logFile == null) {
-      return;
-    }
+    File logFile = new File(logFileDir, logFileName);
+    boolean createFileFlag = createLogFile(logFile);
 
+    String timeInfo = new SimpleDateFormat(DATE_FORMAT_LOG_INFO,
+        Locale.CHINA).format(timeMillis);
     try {
-      String timeInfo = new SimpleDateFormat(DATE_FORMAT_LOG_INFO,
-          Locale.CHINA).format(timeMillis);
       writeInfo(logFile, timeInfo, type, tag, msg);
     } catch (IOException e) {
-      logger.log(E, TAG,
-          "log info write fail :" + LINE_SEPARATOR + StackTraceUtils.getStackTraceString(e));
+      throw new IOException("log info write fail", e);
+    }
+
+    if (createFileFlag) {
+      return logFile.getAbsolutePath();
+    } else {
+      return null;
     }
   }
 
-  public static File makeZipFile(File logFileDir, String zipFileName, long beginTime)
+  public File makeZipFile(String zipFileName, long beginTime)
       throws IOException {
 
-    List<File> files = fetchLogFiles(logFileDir, beginTime);
+    List<File> files = fetchLogFiles(beginTime);
 
     File zipFile = new File(logFileDir, zipFileName);
 
@@ -115,8 +122,7 @@ public class FileLog {
 
   }
 
-
-  public static List<File> fetchLogFiles(File logFileDir, long beginTime)
+  public List<File> fetchLogFiles(long beginTime)
       throws FileNotFoundException {
     if (logFileDir == null || !logFileDir.exists()) {
       throw new FileNotFoundException("logFileDir == null or not exists");
@@ -131,7 +137,7 @@ public class FileLog {
     ArrayList<File> logFiles = new ArrayList<>();
     for (File file : files) {
       String fileName = file.getName();
-      if (!fileName.contains(FILE_PREFIX) || !fileName.contains(FILE_FORMAT)) {
+      if (!fileName.startsWith(logFilePrefix) || !fileName.endsWith(FILE_FORMAT)) {
         //去除非目标日志 即非固定前缀和固定后缀的文件名
         continue;
       }
@@ -141,7 +147,7 @@ public class FileLog {
         logFiles.add(file);
       } else {
         String timeFileInfo = fileName
-            .substring(FILE_PREFIX.length(), fileName.length() - FILE_FORMAT.length());
+            .substring(logFilePrefix.length(), fileName.length() - FILE_FORMAT.length());
         long fileTime = getFileTime(DATE_FORMAT_LOG_FILE, timeFileInfo);
         if (fileTime >= beginTime) {
           //log文件保存时间 >= 限定开始时间 即在限定时间之后的日志
@@ -189,43 +195,22 @@ public class FileLog {
     }
   }
 
-  private static File checkLogFile(File logFile, Logger logger) {
+  private static boolean createLogFile(File logFile) throws IOException {
 
     if (logFile.exists()) {
       if (!logFile.isFile()) {
-        logger.log(E, TAG,
+        throw new IOException(
             "file " + logFile.getAbsolutePath() + " is not file cannot input log");
-        return null;
       }
-      return logFile;
+      return false;
     } else {
       try {
         logFile.createNewFile();
-        logger.log(I, TAG, "create log file local:" + logFile.getAbsolutePath());
-        return logFile;
+        return true;
       } catch (IOException e) {
-        e.printStackTrace();
-        logger.log(E, TAG,
-            "log create file failed :" + LINE_SEPARATOR + StackTraceUtils.getStackTraceString(e));
+        throw new IOException("file" + logFile.getAbsolutePath() + " createNewFile fail", e);
       }
     }
-    return null;
-  }
-
-  private static boolean checkLogDir(File logFileDir, Logger logger) {
-    if (logFileDir == null) {
-      logger.log(E, TAG, "logFileDir == nul");
-      return false;
-    }
-
-    if (!logFileDir.exists()) {
-      boolean mkdirs = logFileDir.mkdirs();
-      if (!mkdirs) {
-        logger.log(E, TAG, "logFileDir mkdirs failed");
-        return false;
-      }
-    }
-    return true;
   }
 
 }

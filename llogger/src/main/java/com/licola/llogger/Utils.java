@@ -1,5 +1,7 @@
 package com.licola.llogger;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.UnknownHostException;
@@ -7,9 +9,38 @@ import java.net.UnknownHostException;
 /**
  * Created by LiCola on 2018/5/23.
  */
-public class StackTraceUtils {
+class Utils {
 
   private static final String TRACE_CLASS_END = "at com.licola.llogger";
+
+  public static void checkNotEmpty(CharSequence str) {
+    if (str == null || str.length() == 0){
+      throw new IllegalArgumentException("value must be not empty");
+    }
+  }
+
+  static void checkDirFile(File logFileDir) {
+    if (logFileDir == null) {
+      throw new NullPointerException("logFileDir == null");
+    }
+
+    if (logFileDir.exists() && !logFileDir.isDirectory()) {
+      throw new IllegalArgumentException("logFileDir must be directory");
+    }
+  }
+
+  static void checkAndCreateDir(File logFileDir) throws FileNotFoundException {
+    if (logFileDir == null) {
+      throw new FileNotFoundException("logFileDir == nul");
+    }
+
+    if (!logFileDir.exists()) {
+      boolean mkdirs = logFileDir.mkdirs();
+      if (!mkdirs) {
+        throw new FileNotFoundException("logFileDir mkdirs failed");
+      }
+    }
+  }
 
   static String getStackTraceString(Throwable tr) {
     if (tr == null) {

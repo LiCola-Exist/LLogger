@@ -7,7 +7,9 @@ import com.licola.llogger.LLogger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
   }
 
   public void onClickLogV(View view) {
@@ -114,6 +117,16 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
+  public void onClickCheckUIMonitor(View view) {
+
+
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+
+  }
 
   class MyRunnable implements Runnable {
 

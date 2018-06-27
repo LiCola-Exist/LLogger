@@ -1,5 +1,6 @@
 package com.licola.llogger;
 
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,7 +34,6 @@ public final class LLogger {
   private static final String SUFFIX_JAVA = ".java";
 
   private static final String DEFAULT_TAG = "LLogger";
-  private static final String DEFAULT_FILE_PREFIX = "LLogger_";
   private static final long FETCH_ALL_LOG = 0;
   private static final long HOUR_TIME = 60 * 60 * 1000;
 
@@ -50,11 +50,9 @@ public final class LLogger {
 
   private static boolean mShowLog = true;//默认显示log
   static String TAG = DEFAULT_TAG;
-  private static File mLogFileDir = null;
-  private static boolean mSaveLog = false;
-  static String FILE_PREFIX = DEFAULT_FILE_PREFIX;
 
   private static Logger logger;
+  private static FileLog fileLog;
 
   static {
     boolean androidAvailable = AndroidLogger.isAndroidLogAvailable();
@@ -93,27 +91,15 @@ public final class LLogger {
    * @param logFileDir log
    */
   public static void init(boolean showLog, String tag, File logFileDir) {
-    init(showLog, tag, logFileDir, DEFAULT_FILE_PREFIX);
+    init(showLog, tag, logFileDir, FileLog.DEFAULT_FILE_PREFIX);
   }
 
   public static void init(boolean showLog, String tag, File logFileDir, String logFilePrefix) {
     mShowLog = showLog;
     TAG = tag;
-    checkLogDirFile(logFileDir);
-    mSaveLog = true;
-    mLogFileDir = logFileDir;
-    FILE_PREFIX = logFilePrefix;
+    fileLog = new FileLog(logFileDir, logFilePrefix);
   }
 
-  private static void checkLogDirFile(File logFileDir) {
-    if (logFileDir == null) {
-      throw new NullPointerException("logFileDir == null");
-    }
-
-    if (logFileDir.exists() && !logFileDir.isDirectory()) {
-      throw new IllegalArgumentException("logFileDir must be directory");
-    }
-  }
 
   public static void v() {
     printLog(V, DEFAULT_MESSAGE);
@@ -195,6 +181,28 @@ public final class LLogger {
     printStackTrace(msg);
   }
 
+  /**
+   * 开启检测主线程耗时任务功能
+   */
+  public static void startMonitor() {
+    logger.startMonitor(AndroidUIMonitor.TIME_OUT_LIMIT);
+  }
+
+  /**
+   * 开启检测主线程耗时任务功能 ，如果任务执行超过指定时间，会log打印出相关代码行
+   * @param timeOut 指定主线程任务执行最大时间
+   */
+  public static void startMonitor(long timeOut) {
+    logger.startMonitor(timeOut);
+  }
+
+  /**
+   * 停止主线程耗时任务检测
+   */
+  public static void stopMonitor() {
+    logger.stopMonitor();
+  }
+
   public static void json(JSONObject jsonObject) {
     printJson(jsonObject);
   }
@@ -203,9 +211,6 @@ public final class LLogger {
     printJson(jsonArray);
   }
 
-  public static void json(String jsonFormat) {
-    printJson(jsonFormat);
-  }
 
   private static void printLog(int type, Object... objects) {
     if (!mShowLog) {
@@ -215,7 +220,7 @@ public final class LLogger {
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
     String msg = (objects == null) ? NULL : getObjectsString(objects);
 
-    if (mSaveLog) {
+    if (fileLog != null) {
       printFile(type, TAG, headString + msg);
     }
 
@@ -242,7 +247,7 @@ public final class LLogger {
         message = object.toString();
       }
     } catch (JSONException e) {
-      logger.log(E, TAG, StackTraceUtils.getStackTraceString(e));
+      logger.log(E, TAG, Utils.getStackTraceString(e));
     }
 
     if (message != null) {
@@ -255,7 +260,14 @@ public final class LLogger {
   private static void printFile(int type, String tag, String msg) {
 
     long timeMillis = System.currentTimeMillis();
-    FileLog.printFile(mLogFileDir, timeMillis, logger, type, tag, msg);
+    try {
+      String fileLogPath = LLogger.fileLog.printFileLog(timeMillis, type, tag, msg);
+      if (fileLogPath != null) {
+        logger.log(I, TAG, "create log file " + fileLogPath);
+      }
+    } catch (IOException e) {
+      logger.log(E, TAG, e.toString());
+    }
   }
 
   /**
@@ -278,7 +290,7 @@ public final class LLogger {
   public static List<File> fetchLogList(int lastHour) throws FileNotFoundException {
     long curTime = System.currentTimeMillis();
     long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
-    return FileLog.fetchLogFiles(mLogFileDir, beginTime);
+    return fetchLogList(beginTime);
   }
 
   /**
@@ -289,7 +301,11 @@ public final class LLogger {
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
   public static List<File> fetchLogList(long beginTime) throws FileNotFoundException {
-    return FileLog.fetchLogFiles(mLogFileDir, beginTime);
+    if (fileLog == null) {
+      throw new FileNotFoundException("没有配置日志目录");
+    }
+
+    return fileLog.fetchLogFiles(beginTime);
   }
 
   /**
@@ -332,7 +348,12 @@ public final class LLogger {
    */
   public static File makeLogZipFile(String zipFileName, long beginTime)
       throws IOException {
-    return FileLog.makeZipFile(mLogFileDir, zipFileName, beginTime);
+
+    if (fileLog == null) {
+      throw new FileNotFoundException("没有配置日志目录");
+    }
+
+    return fileLog.makeZipFile(zipFileName, beginTime);
   }
 
 
@@ -342,7 +363,7 @@ public final class LLogger {
     }
 
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
-    logger.log(D, TAG, headString + msg + StackTraceUtils.getStackTrace());
+    logger.log(D, TAG, headString + msg + Utils.getStackTrace());
   }
 
 

@@ -26,4 +26,8 @@ abstract class Logger {
   }
 
   abstract void logType(int type, String tag, String msg);
+
+  abstract void startMonitor(long timeOut);
+
+  abstract void stopMonitor();
 }
