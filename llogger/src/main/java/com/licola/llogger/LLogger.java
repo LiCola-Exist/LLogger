@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -251,7 +252,7 @@ public final class LLogger {
     }
 
     if (message != null) {
-      message = headString + LLogger.LINE_SEPARATOR + message;
+      message = headString + LINE_SEPARATOR + message;
       logger.log(D, TAG, message);
     }
 
@@ -261,7 +262,7 @@ public final class LLogger {
 
     long timeMillis = System.currentTimeMillis();
     try {
-      String fileLogPath = LLogger.fileLog.printFileLog(timeMillis, type, tag, msg);
+      String fileLogPath = fileLog.printFileLog(timeMillis, type, tag, msg);
       if (fileLogPath != null) {
         logger.log(I, TAG, "create log file " + fileLogPath);
       }
@@ -381,7 +382,7 @@ public final class LLogger {
     }
 
     String innerClassName = null;
-    if (!classFileName.equals(className) && className.contains("$")) {
+    if (!className.equals(classFileName) && className.contains("$")) {
       //内部类
       int index = className.indexOf("$");
       innerClassName = className.substring(index);
