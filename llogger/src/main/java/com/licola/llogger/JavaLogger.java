@@ -10,7 +10,7 @@ import java.util.Locale;
  * Created by LiCola on 2018/5/21.
  * Java环境下的log日志打印工具类
  */
-public class JavaLogger extends Logger {
+class JavaLogger extends Logger {
 
   private static final String DATE_FORMAT_LOG_INFO = "MM-dd HH:mm:ss.SSS";
 

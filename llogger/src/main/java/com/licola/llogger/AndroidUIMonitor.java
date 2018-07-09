@@ -8,7 +8,7 @@ import android.util.Printer;
 /**
  * Created by LiCola on 2018/6/27.
  */
-public class AndroidUIMonitor {
+class AndroidUIMonitor {
 
   public static final long TIME_OUT_LIMIT = 1000L;
 

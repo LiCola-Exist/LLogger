@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,7 +21,6 @@ import org.json.JSONObject;
  *
  * 基于：https://github.com/ZhaoKaiQiang/KLog项目改造
  */
-
 public final class LLogger {
 
   static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -174,10 +172,17 @@ public final class LLogger {
     printLog(A, objects);
   }
 
+  /**
+   * @see #trace(String)
+   */
   public static void trace() {
     printStackTrace(DEFAULT_TRACE);
   }
 
+  /**
+   * 打印代码调用栈，在引入的混淆导致无法正确获取代码信息
+   * @param msg
+   */
   public static void trace(String msg) {
     printStackTrace(msg);
   }

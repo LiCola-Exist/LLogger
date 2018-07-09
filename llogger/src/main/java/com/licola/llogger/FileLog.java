@@ -20,7 +20,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * Created by LiCola on 2018/5/14.
  */
-public class FileLog {
+class FileLog {
 
   private static final String FILE_FORMAT = ".log";
   static final String DEFAULT_FILE_PREFIX = "LLogger_";
