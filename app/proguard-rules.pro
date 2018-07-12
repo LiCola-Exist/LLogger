@@ -19,6 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+#llogger的混淆配置
 -keep class com.licola.llogger.**{*;}
 
 #bugly的混淆配置

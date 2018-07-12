@@ -112,5 +112,16 @@ log：06-04 19:02:18.971 main Debug/Java: [ (JavaMain.java:17)#main ] execute
 
 具体比如在IDEA的纯Java环境也可以在Run中打印出丰富的信息
 
+# 混淆
+因为日志库中代码有线程方法栈的使用（Thread.currentThread().getStackTrace()），对代码结构敏感，如果开启混淆代码结构变化，导致方法内联等就会让日志库打印信息错误。
+所以需要在依赖该库的项目里的"proguard-rules.pro"文件添加
+```proguard
+#llogger的混淆配置
+-keep class com.licola.llogger.**{*;}
+```
+
+开启混淆的同时可能会改变类和方法的名称，这样就会导致日志行打印的部分信息无效。
+我正在考虑在混淆版本中修改日志输出结构，然后用proguard的retrace.jar库加载mapping.txt映射信息恢复原有代码信息
+
 # 参考
 本项目基础参考自：[KLog](https://github.com/ZhaoKaiQiang/KLog)。感谢提供基础思路。
