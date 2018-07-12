@@ -23,7 +23,7 @@ import org.json.JSONObject;
  */
 public final class LLogger {
 
-  static final String LINE_SEPARATOR = System.getProperty("line.separator");
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String DEFAULT_MESSAGE = "execute";
   private static final String DEFAULT_TRACE = "trace";
@@ -31,6 +31,7 @@ public final class LLogger {
   private static final String NULL = "null";
 
   private static final String SUFFIX_JAVA = ".java";
+  private static final String ANONYMITY_JAVA_FLAG = "$";
 
   private static final String DEFAULT_TAG = "LLogger";
   private static final long FETCH_ALL_LOG = 0;
@@ -181,7 +182,6 @@ public final class LLogger {
 
   /**
    * 打印代码调用栈，在引入的混淆导致无法正确获取代码信息
-   * @param msg
    */
   public static void trace(String msg) {
     printStackTrace(msg);
@@ -196,6 +196,7 @@ public final class LLogger {
 
   /**
    * 开启检测主线程耗时任务功能 ，如果任务执行超过指定时间，会log打印出相关代码行
+   *
    * @param timeOut 指定主线程任务执行最大时间
    */
   public static void startMonitor(long timeOut) {
@@ -387,9 +388,9 @@ public final class LLogger {
     }
 
     String innerClassName = null;
-    if (!className.equals(classFileName) && className.contains("$")) {
+    if (!className.equals(classFileName) && className.contains(ANONYMITY_JAVA_FLAG)) {
       //内部类
-      int index = className.indexOf("$");
+      int index = className.indexOf(ANONYMITY_JAVA_FLAG);
       innerClassName = className.substring(index);
     }
 

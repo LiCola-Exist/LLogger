@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.licola.llogger.LLogger;
+import com.tencent.bugly.crashreport.BuglyLog;
+import com.tencent.bugly.crashreport.CrashReport;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -79,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
 
   public void onClickLogTrace(View view) {
     LLogger.trace();
+    ProguardTarget target = new ProguardTarget();
+    target.invoke();
   }
 
   public void onClickLogInnerClass(View view) {
@@ -117,13 +121,22 @@ public class MainActivity extends AppCompatActivity {
 
   public void onClickCheckUIMonitor(View view) {
 
-
     try {
       Thread.sleep(2000);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
 
+  }
+
+  public void onClickCheckThrow(View view) {
+    throw new IllegalStateException("throw exception");
+  }
+
+  public void onClickCheckBugly(View view) {
+    BuglyLog.d("bugly-log","log info");
+    ProguardTarget target = new ProguardTarget();
+    target.invoke();
   }
 
   class MyRunnable implements Runnable {

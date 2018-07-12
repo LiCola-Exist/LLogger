@@ -74,6 +74,15 @@
       android:layout_height="wrap_content"
       android:onClick="onClickCheckUIMonitor"
       android:text="check-ui-monitor" />
-
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:onClick="onClickCheckThrow"
+      android:text="check-throw" />
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:onClick="onClickCheckBugly"
+      android:text="check-bugly" />
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

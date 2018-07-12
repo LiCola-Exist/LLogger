@@ -2,6 +2,7 @@ package com.licola.model.llogger;
 
 import android.app.Application;
 import com.licola.llogger.LLogger;
+import com.tencent.bugly.crashreport.CrashReport;
 import java.io.File;
 
 /**
@@ -19,6 +20,16 @@ public class MyApplication extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+
+    /**
+     * 第三个参数为SDK调试模式开关，调试模式的行为特性如下：
+     *  输出详细的Bugly SDK的Log；
+     *  每一条Crash都会被立即上报；
+     *  自定义日志将会在Logcat中输出。
+     * 建议在测试阶段建议设置成true，发布时设置为false。
+     */
+    CrashReport.initCrashReport(getApplicationContext(), "90697d4cad", true);
+
 //    LLogger.init(showLog);//打开log显示
 //    LLogger.init(showLog, TAG);//打开log显示 配置Tag
 
@@ -31,7 +42,7 @@ public class MyApplication extends Application {
     LLogger.init(showLog, TAG, logDir, LOG_FILE_PREFIX);//打开log显示 配置tag log信息写入本地目录 并固定log文件后缀
 
     //开启主线程耗时任务检测
-    LLogger.startMonitor();
+//    LLogger.startMonitor();
 
   }
 }

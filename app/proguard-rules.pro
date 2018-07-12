@@ -19,4 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-#-keepclasseswithmembers class com.licola.llogger.**
+-keep class com.licola.llogger.**{*;}
+
+#bugly的混淆配置
+-dontwarn com.tencent.bugly.**
+-keep public class com.tencent.bugly.**{*;}
