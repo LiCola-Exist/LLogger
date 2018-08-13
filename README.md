@@ -138,5 +138,5 @@ log：06-04 19:02:18.971 main Debug/Java: [ (JavaMain.java:17)#main ] execute
 
 
 # 参考
-- [KLog](https://github.com/ZhaoKaiQiang/KLog),感谢提供基础思路。
+- [KLog](https://github.com/ZhaoKaiQiang/KLog),感谢提供基础思路。 
 - [Android 高性能日志写入方案](https://juejin.im/post/5b6d26016fb9a04f86065cdf)
