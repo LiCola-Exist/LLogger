@@ -8,6 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel.MapMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ import java.util.zip.ZipOutputStream;
  */
 class FileLog {
 
+  private static final char SPACING = ' ';
   private static final String FILE_FORMAT = ".log";
   static final String DEFAULT_FILE_PREFIX = "LLogger_";
 
@@ -31,7 +35,7 @@ class FileLog {
   private String logFilePrefix;
   private File logFileDir;
 
-  public FileLog(File logFileDir, String logFilePrefix) {
+  FileLog(File logFileDir, String logFilePrefix) {
     Utils.checkDirFile(logFileDir);
     Utils.checkNotEmpty(logFilePrefix);
     this.logFileDir = logFileDir;
@@ -181,16 +185,51 @@ class FileLog {
 
     String threadName = Thread.currentThread().getName();
 
+    String output = timePrefix
+        + SPACING
+        + threadName
+        + SPACING
+        + mapperType(type)
+        + '/'
+        + tag
+        + ':'
+        + msg
+        + "\n";
+
+//    fileWriter(logFile, output);
+    mappedByteBufferWrite(logFile, output);
+  }
+
+  private static void fileWriter(File logFile, String output) throws IOException {
     FileWriter fileWriter = null;
     try {
       fileWriter = new FileWriter(logFile, true);
-      fileWriter.write(
-          timePrefix + " " + threadName + " " + mapperType(type) + "/" + tag + ": " + msg
-              + "\n");
+      fileWriter.write(output);
       fileWriter.flush();
     } finally {
       if (fileWriter != null) {
         fileWriter.close();
+      }
+    }
+  }
+
+  private static void mappedByteBufferWrite(File logFile, String output)
+      throws IOException {
+    byte[] srcByte = output.getBytes();
+    int length = srcByte.length;
+    RandomAccessFile randomAccessFile = null;
+
+    try {
+      randomAccessFile = new RandomAccessFile(logFile, "rw");
+      MappedByteBuffer byteBuffer = randomAccessFile
+          .getChannel()
+          .map(MapMode.READ_WRITE, logFile.length(), length);
+      for (byte aSrcByte : srcByte) {
+        byteBuffer.put(aSrcByte);
+      }
+    } finally {
+      if (randomAccessFile != null) {
+        randomAccessFile.close();
       }
     }
   }
@@ -205,8 +244,7 @@ class FileLog {
       return false;
     } else {
       try {
-        logFile.createNewFile();
-        return true;
+        return logFile.createNewFile();
       } catch (IOException e) {
         throw new IOException("file" + logFile.getAbsolutePath() + " createNewFile fail", e);
       }

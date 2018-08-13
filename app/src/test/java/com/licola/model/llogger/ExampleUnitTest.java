@@ -26,8 +26,7 @@ public class ExampleUnitTest {
 
   @Test
   public void traceTest(){
-    LLogger.trace();
-    LLogger.trace();
+    LLogger.trace("throw error");
   }
 
 }

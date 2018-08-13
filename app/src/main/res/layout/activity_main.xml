@@ -84,5 +84,12 @@
       android:layout_height="wrap_content"
       android:onClick="onClickCheckBugly"
       android:text="check-bugly" />
+
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:onClick="onClickCheckEffectRun"
+      android:text="effect-run" />
+
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

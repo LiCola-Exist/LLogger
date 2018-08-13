@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.licola.llogger.LLogger;
 import com.tencent.bugly.crashreport.BuglyLog;
-import com.tencent.bugly.crashreport.CrashReport;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -134,9 +133,18 @@ public class MainActivity extends AppCompatActivity {
   }
 
   public void onClickCheckBugly(View view) {
-    BuglyLog.d("bugly-log","log info");
+    BuglyLog.d("bugly-log", "log info");
     ProguardTarget target = new ProguardTarget();
     target.invoke();
+  }
+
+  public void onClickCheckEffectRun(View view) {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        RunEffect.testEffect();
+      }
+    }).start();
   }
 
   class MyRunnable implements Runnable {

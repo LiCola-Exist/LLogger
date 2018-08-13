@@ -20,6 +20,10 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 #llogger的混淆配置
+
+#配置这样是为了 在对低于21编译版本时 防止抛出Please correct the above warnings first.
+-ignorewarnings
+
 -keep class com.licola.llogger.**{*;}
 
 #bugly的混淆配置

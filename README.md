@@ -18,9 +18,11 @@
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.1"
+  implementation "com.licola:llogger:1.4.3"
 ```
 
+# 更新日志
+ - 1.4.3:优化log文件写入的IO操作
 # 使用
 静态方法，一行代码调用
 ```java
@@ -123,5 +125,18 @@ log：06-04 19:02:18.971 main Debug/Java: [ (JavaMain.java:17)#main ] execute
 开启混淆的同时可能会改变类和方法的名称，这样就会导致日志行打印的部分信息无效。
 我正在考虑在混淆版本中修改日志输出结构，然后用proguard的retrace.jar库加载mapping.txt映射信息恢复原有代码信息
 
+# 优化
+日志文件的写入肯定是IO操作，这在移动设备是一大性能优化方向。
+考虑日志的使用场景，随时可能发生写日志数据。且需要保证日志的完整性，当程序发生Crash或进程被杀死后需要保证日志完整写入。
+这就限制了在写日志的优化方向，不能使用内存Buffer缓存日志避免IO，因为内存在Crash时就无法保证数据正常。
+所以就提出了高性能方案：mmap，内存映射文件。具体使用就是`MappedByteBuffer`类映射本地文件进行读写。
+
+## 结果
+`MappedByteBuffer`-内存映射方案 `FileWriter`-普通IO，比对。
+目前在PC设备（i7/16G）上能够达到优化0.05ms效果（20W次log写入测试）。
+在移动设备上因为的内存GC的影响太大，无法具体确认优化效果，只能简单说能够达到1ms级别的优化效果。
+
+
 # 参考
-本项目基础参考自：[KLog](https://github.com/ZhaoKaiQiang/KLog)。感谢提供基础思路。
+- [KLog](https://github.com/ZhaoKaiQiang/KLog),感谢提供基础思路。
+- [Android 高性能日志写入方案](https://juejin.im/post/5b6d26016fb9a04f86065cdf)
