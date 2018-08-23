@@ -49,7 +49,11 @@ public class MainActivity extends AppCompatActivity {
   public void onClickLogE(View view) {
     LLogger.e();
     LLogger.e("error");
-    LLogger.e("error", view);
+    try {
+      throw new RuntimeException("故意抛出的异常");
+    } catch (Throwable throwable) {
+      LLogger.e(throwable);
+    }
   }
 
   public void onClickLogA(View view) {
@@ -76,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
       e.printStackTrace();
     }
     LLogger.json(jsonArray);
+
   }
 
   public void onClickLogTrace(View view) {

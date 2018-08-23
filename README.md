@@ -18,17 +18,19 @@
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.3"
+  implementation "com.licola:llogger:1.4.4"
 ```
 
 # 更新日志
  - 1.4.3:优化log文件写入的IO操作
+ - 1.4.4:加入Json信息写入日志操作
 # 使用
 静态方法，一行代码调用
 ```java
     LLogger.d();
     LLogger.d("debug");
     LLogger.d("debug", "more info");
+    LLogger.json(jsonObject);
     LLogger.trace();//打印方法调用栈
     LLogger.startMonitor();//开启主线程耗时任务检测
 ```

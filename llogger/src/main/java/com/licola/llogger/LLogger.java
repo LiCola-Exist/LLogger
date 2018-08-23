@@ -218,7 +218,6 @@ public final class LLogger {
     printJson(jsonArray);
   }
 
-
   private static void printLog(int type, Object... objects) {
     if (!mShowLog) {
       return;
@@ -227,15 +226,16 @@ public final class LLogger {
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
     String msg = (objects == null) ? NULL : getObjectsString(objects);
 
+    String message = headString + msg;
+
+    logger.log(type, TAG, message);
+
     if (fileLog != null) {
-      printFile(type, TAG, headString + msg);
+      printFile(type, TAG, message);
     }
-
-    logger.log(type, TAG, headString + msg);
-
   }
 
-  private static void printJson(Object object) {
+  public static void printJson(Object object) {
 
     if (!mShowLog) {
       return;
@@ -243,23 +243,26 @@ public final class LLogger {
 
     String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
 
-    String message = null;
-
+    int type = I;
+    String msg;
     try {
       if (object instanceof JSONObject) {
-        message = ((JSONObject) object).toString(JSON_INDENT);
+        msg = ((JSONObject) object).toString(JSON_INDENT);
       } else if (object instanceof JSONArray) {
-        message = ((JSONArray) object).toString(JSON_INDENT);
+        msg = ((JSONArray) object).toString(JSON_INDENT);
       } else {
-        message = object.toString();
+        throw new JSONException("非Json类型");
       }
     } catch (JSONException e) {
-      logger.log(E, TAG, Utils.getStackTraceString(e));
+      type = E;
+      msg = Utils.getStackTraceString(e);
     }
 
-    if (message != null) {
-      message = headString + LINE_SEPARATOR + message;
-      logger.log(D, TAG, message);
+    String message = headString + LINE_SEPARATOR + msg;
+    logger.log(type, TAG, message);
+
+    if (fileLog != null) {
+      printFile(type, TAG, message);
     }
 
   }
