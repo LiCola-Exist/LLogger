@@ -1,33 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  tools:context=".MainActivity">
+  tools:context=".FileLoggerActivity">
 
   <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
-
+    android:orientation="vertical"
+    >
     <Button
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Log操作示例"
-      android:onClick="onClickLogOperate"
-      />
+      android:onClick="onClickFetchLogListAll"
+      android:text="fetch-log-list-all" />
     <Button
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Log-File文件操作示例"
-      android:onClick="onClickLogFileOperate"
-      />
+      android:onClick="onClickFetchLogList"
+      android:text="fetch-log-list-with-time" />
     <Button
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Log其他操作示例"
-      android:onClick="onClickLogOtherOperate"
-      />
+      android:onClick="onClickZipLogFile"
+      android:text="zip-log-file-all" />
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:onClick="onClickZipLogFileWithTime"
+      android:text="zip-log-file-with-time" />
 
   </LinearLayout>
+
 </android.support.v4.widget.NestedScrollView>

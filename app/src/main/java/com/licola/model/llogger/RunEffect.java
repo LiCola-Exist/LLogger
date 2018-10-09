@@ -4,6 +4,7 @@ import com.licola.llogger.LLogger;
 import java.util.ArrayList;
 
 /**
+ * 日志写入运行效率测试
  * @author LiCola
  * @date 2018/8/13
  */

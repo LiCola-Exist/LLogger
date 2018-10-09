@@ -3,7 +3,6 @@ package com.licola.model.llogger;
 import com.licola.llogger.LLogger;
 import java.io.File;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Created by LiCola on 2018/5/22.
