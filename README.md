@@ -18,12 +18,13 @@
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.4"
+  implementation "com.licola:llogger:1.4.5"
 ```
 
 # 更新日志
  - 1.4.3:优化log文件写入的IO操作
  - 1.4.4:加入Json信息写入日志操作
+ - 1.4.5:修复在特殊Android运行环境(如Xposed)的情况下某些log信息无效情况
 # 使用
 静态方法，一行代码调用
 ```java

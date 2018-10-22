@@ -16,8 +16,7 @@ import org.json.JSONObject;
  * 3:支持空参，单一参数，多参数打印
  * 4:支持log日志信息写入本地文件,以时间为节点，避免日志过长，且支持打包log文件
  * 5:支持Java环境log打印，如在android的test本地单元测试中打印
- * 6:支持JSON字符串、JSON对象、JSON数组友好格式化打印
- * 7:支持超长4000+字符串长度打印
+ * 6:支持JSON字符串、JSON对象、JSON数组友好格式化打印 7:支持超长4000+字符串长度打印
  *
  * 基于：https://github.com/ZhaoKaiQiang/KLog项目改造
  */
@@ -37,7 +36,6 @@ public final class LLogger {
   private static final long FETCH_ALL_LOG = 0;
   private static final long HOUR_TIME = 60 * 60 * 1000;
 
-  private static int STACK_TRACE_INDEX_WRAP = 4;//线程的栈层级
   private static final int JSON_INDENT = 4;
 
   public static final int V = 0x1;
@@ -57,10 +55,6 @@ public final class LLogger {
   static {
     boolean androidAvailable = AndroidLogger.isAndroidLogAvailable();
     logger = androidAvailable ? new AndroidLogger() : new JavaLogger();
-    if (androidAvailable) {
-      //android 环境的 StackTraceElement 多一层dalvik.system.VMStack
-      STACK_TRACE_INDEX_WRAP++;
-    }
   }
 
   /**
@@ -223,7 +217,7 @@ public final class LLogger {
       return;
     }
 
-    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
+    String headString = wrapperContent();
     String msg = (objects == null) ? NULL : getObjectsString(objects);
 
     String message = headString + msg;
@@ -241,7 +235,7 @@ public final class LLogger {
       return;
     }
 
-    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
+    String headString = wrapperContent();
 
     int type = I;
     String msg;
@@ -372,14 +366,16 @@ public final class LLogger {
       return;
     }
 
-    String headString = wrapperContent(STACK_TRACE_INDEX_WRAP);
+    String headString = wrapperContent();
     logger.log(D, TAG, headString + msg + Utils.getStackTrace());
   }
 
 
-  private static String wrapperContent(int stackTraceIndex) {
+  private static String wrapperContent() {
 
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+
+    int stackTraceIndex = Utils.findInvokeStackIndex(stackTraceElements);
 
     StackTraceElement targetElement = stackTraceElements[stackTraceIndex];
     String classFileName = targetElement.getFileName();
@@ -413,6 +409,7 @@ public final class LLogger {
         + methodName
         + " ] ";
   }
+
 
   private static String getObjectsString(Object[] objects) {
 

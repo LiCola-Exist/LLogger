@@ -7,6 +7,7 @@ import com.licola.llogger.LLogger;
 import com.tencent.bugly.crashreport.BuglyLog;
 import com.tencent.bugly.crashreport.CrashReport;
 import java.io.File;
+import java.lang.Thread.UncaughtExceptionHandler;
 
 public class OtherActivity extends AppCompatActivity {
 
@@ -36,14 +37,21 @@ public class OtherActivity extends AppCompatActivity {
 
     //开启主线程耗时任务检测
     LLogger.startMonitor();
+
+    final UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread
+        .getDefaultUncaughtExceptionHandler();
+
+    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      @Override
+      public void uncaughtException(Thread t, Throwable e) {
+        defaultUncaughtExceptionHandler.uncaughtException(t, e);
+      }
+    });
   }
 
 
   /**
-   * 主线程长时间休眠，模拟主线程卡顿
-   * 通过LLogger.startMonitor()开启耗时任务检测
-   * 一旦发现输出Warn，由Android-UI-Monitor监听器发出
-   * @param view
+   * 主线程长时间休眠，模拟主线程卡顿 通过LLogger.startMonitor()开启耗时任务检测 一旦发现输出Warn，由Android-UI-Monitor监听器发出
    */
   public void onClickCheckUIMonitor(View view) {
 

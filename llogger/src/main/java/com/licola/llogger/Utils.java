@@ -12,9 +12,10 @@ import java.net.UnknownHostException;
 class Utils {
 
   private static final String TRACE_CLASS_END = "at com.licola.llogger";
+  private static final String TRACE_CLASS_LOGGER_FLAG = "LLogger.java";
 
   public static void checkNotEmpty(CharSequence str) {
-    if (str == null || str.length() == 0){
+    if (str == null || str.length() == 0) {
       throw new IllegalArgumentException("value must be not empty");
     }
   }
@@ -60,6 +61,18 @@ class Utils {
     tr.printStackTrace(pw);
     pw.flush();
     return sw.toString();
+  }
+
+
+  static int findInvokeStackIndex(StackTraceElement[] stackTraceElements) {
+    //调用栈逆序 遍历
+    for (int i = stackTraceElements.length - 1; i >= 0; i--) {
+      StackTraceElement traceElement = stackTraceElements[i];
+      if (TRACE_CLASS_LOGGER_FLAG.equals(traceElement.getFileName())) {
+        return i + 1;
+      }
+    }
+    return 0;
   }
 
   static String getStackTrace() {
