@@ -29,11 +29,22 @@ class FileLog {
   private static final String FILE_FORMAT = ".log";
   static final String DEFAULT_FILE_PREFIX = "LLogger_";
 
-  private static final String DATE_FORMAT_LOG_FILE = "yyyy-MM-dd_HH";
-  private static final String DATE_FORMAT_LOG_INFO = "HH:mm:ss.SSS";
+  private static final ThreadLocal<SimpleDateFormat> FORMAT_FILE = new ThreadLocal<SimpleDateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("yyyy-MM-dd_HH", Locale.CHINA);
+    }
+  };
 
-  private String logFilePrefix;
-  private File logFileDir;
+  private static final ThreadLocal<SimpleDateFormat> FORMAT_INFO = new ThreadLocal<SimpleDateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      return new SimpleDateFormat("HH:mm:ss.SSS", Locale.CHINA);
+    }
+  };
+
+  private final String logFilePrefix;
+  private final File logFileDir;
 
   FileLog(File logFileDir, String logFilePrefix) {
     Utils.checkDirFile(logFileDir);
@@ -47,15 +58,13 @@ class FileLog {
 
     Utils.checkAndCreateDir(logFileDir);
 
-    String timeFileInfo = new SimpleDateFormat(DATE_FORMAT_LOG_FILE,
-        Locale.CHINA).format(timeMillis);
+    String timeFileInfo = FORMAT_FILE.get().format(timeMillis);
     String logFileName = logFilePrefix + timeFileInfo + FILE_FORMAT;
 
     File logFile = new File(logFileDir, logFileName);
     boolean createFileFlag = createLogFile(logFile);
 
-    String timeInfo = new SimpleDateFormat(DATE_FORMAT_LOG_INFO,
-        Locale.CHINA).format(timeMillis);
+    String timeInfo = FORMAT_INFO.get().format(timeMillis);
     try {
       writeInfo(logFile, timeInfo, type, tag, msg);
     } catch (IOException e) {
@@ -152,7 +161,7 @@ class FileLog {
       } else {
         String timeFileInfo = fileName
             .substring(logFilePrefix.length(), fileName.length() - FILE_FORMAT.length());
-        long fileTime = getFileTime(DATE_FORMAT_LOG_FILE, timeFileInfo);
+        long fileTime = getFileTime(timeFileInfo);
         if (fileTime >= beginTime) {
           //log文件保存时间 >= 限定开始时间 即在限定时间之后的日志
           logFiles.add(file);
@@ -167,16 +176,16 @@ class FileLog {
     return logFiles;
   }
 
-  private static long getFileTime(String dataFormatStr, String timeFileInfo) {
-    Date dateFile = null;
-    try {
-      dateFile = new SimpleDateFormat(dataFormatStr,
-          Locale.CHINA).parse(timeFileInfo);
-    } catch (ParseException e) {
+  private static long getFileTime(String timeFileInfo) {
 
+    Date date;
+    try {
+      date = FORMAT_FILE.get().parse(timeFileInfo);
+    } catch (ParseException e) {
+      date = null;
     }
 
-    return dateFile != null ? dateFile.getTime() : 0;
+    return date != null ? date.getTime() : 0;
   }
 
   private static void writeInfo(File logFile, String timePrefix, int type, String tag,
@@ -196,21 +205,7 @@ class FileLog {
         + msg
         + "\n";
 
-//    fileWriter(logFile, output);
     mappedByteBufferWrite(logFile, output);
-  }
-
-  private static void fileWriter(File logFile, String output) throws IOException {
-    FileWriter fileWriter = null;
-    try {
-      fileWriter = new FileWriter(logFile, true);
-      fileWriter.write(output);
-      fileWriter.flush();
-    } finally {
-      if (fileWriter != null) {
-        fileWriter.close();
-      }
-    }
   }
 
   private static void mappedByteBufferWrite(File logFile, String output)

@@ -13,9 +13,9 @@ public class MyApplication extends Application {
   public static final String LOG_FILE_PREFIX = "LLogger_";
   public static final String LOG_FILE_DIR = "log-files";
 
-  private static final boolean SHOW_LOG = true;
+  public static final boolean SHOW_LOG = true;
 
-  private static final String TAG = "Demo";
+  public static final String TAG = "Demo";
 
   @Override
   public void onCreate() {
@@ -29,7 +29,7 @@ public class MyApplication extends Application {
     /**
      * 打开log显示 配置Tag
      */
-    LLogger.init(SHOW_LOG, TAG);
+//    LLogger.init(SHOW_LOG, TAG);
 
 
     /**

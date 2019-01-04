@@ -32,6 +32,13 @@
       android:layout_height="wrap_content"
       android:onClick="onClickCheckEffectRun"
       android:text="effect-run" />
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:onClick="onClickCheckEffectMemory"
+      android:text="effect-memory"
+      />
+
 
   </LinearLayout>
 

@@ -6,18 +6,9 @@ import android.view.View;
 import com.licola.llogger.LLogger;
 import com.tencent.bugly.crashreport.BuglyLog;
 import com.tencent.bugly.crashreport.CrashReport;
-import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 
 public class OtherActivity extends AppCompatActivity {
-
-  public static final String LOG_FILE_PREFIX = "LLogger_Other_";
-  public static final String LOG_FILE_DIR = "log-files";
-
-  private static final boolean SHOW_LOG = true;
-
-  private static final String TAG = "Demo";
-
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +23,6 @@ public class OtherActivity extends AppCompatActivity {
      * 建议在测试阶段建议设置成true，发布时设置为false。
      */
     CrashReport.initCrashReport(getApplicationContext(), "90697d4cad", true);
-
-    LLogger.init(SHOW_LOG, TAG, new File(getCacheDir(), LOG_FILE_DIR), LOG_FILE_PREFIX);
 
     //开启主线程耗时任务检测
     LLogger.startMonitor();
@@ -80,5 +69,12 @@ public class OtherActivity extends AppCompatActivity {
         RunEffect.testEffect();
       }
     }).start();
+  }
+
+  public void onClickCheckEffectMemory(View view) {
+    int size = 200;
+    for (int i = 0; i < size; i++) {
+      LLogger.d(Thread.currentThread(), i);
+    }
   }
 }
