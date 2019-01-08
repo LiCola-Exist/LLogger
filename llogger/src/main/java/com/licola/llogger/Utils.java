@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.UnknownHostException;
 
 /**
  * Created by LiCola on 2018/5/23.
@@ -45,15 +44,7 @@ class Utils {
 
   static String getStackTraceString(Throwable tr) {
     if (tr == null) {
-      return "";
-    }
-
-    Throwable t = tr;
-    while (t != null) {
-      if (t instanceof UnknownHostException) {
-        return "";
-      }
-      t = t.getCause();
+      return "Throwable == null";
     }
 
     StringWriter sw = new StringWriter();

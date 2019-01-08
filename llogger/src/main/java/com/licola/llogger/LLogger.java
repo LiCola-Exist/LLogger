@@ -151,6 +151,10 @@ public final class LLogger {
     printLog(E, msg);
   }
 
+  public static void e(Throwable throwable){
+    printLog(E,Utils.getStackTraceString(throwable));
+  }
+
   public static void e(Object... objects) {
     printLog(E, objects);
   }
