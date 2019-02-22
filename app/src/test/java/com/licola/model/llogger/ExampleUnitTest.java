@@ -1,10 +1,9 @@
 package com.licola.model.llogger;
 
 import com.licola.llogger.LLogger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -13,6 +12,11 @@ import org.junit.Test;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 public class ExampleUnitTest {
+
+  @Before
+  public void setUp(){
+    LLogger.init();
+  }
 
   @Test
   public void LLoggerTest() throws JSONException {

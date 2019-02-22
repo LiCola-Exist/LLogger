@@ -1,12 +1,9 @@
 package com.licola.llogger;
 
-import static com.licola.llogger.LLogger.mapperType;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
@@ -27,7 +24,7 @@ class FileLog {
 
   private static final char SPACING = ' ';
   private static final String FILE_FORMAT = ".log";
-  static final String DEFAULT_FILE_PREFIX = "LLogger_";
+  static final String DEFAULT_FILE_PREFIX = "_";
 
   private static final ThreadLocal<SimpleDateFormat> FORMAT_FILE = new ThreadLocal<SimpleDateFormat>() {
     @Override
@@ -43,30 +40,30 @@ class FileLog {
     }
   };
 
-  private final String logFilePrefix;
+  private final String logTag;
   private final File logFileDir;
 
-  FileLog(File logFileDir, String logFilePrefix) {
-    Utils.checkDirFile(logFileDir);
-    Utils.checkNotEmpty(logFilePrefix);
+  FileLog(String logTag, File logFileDir) {
+    checkDirFile(logFileDir);
     this.logFileDir = logFileDir;
-    this.logFilePrefix = logFilePrefix;
+    this.logTag = logTag;
   }
 
-  public String printFileLog(long timeMillis, int type,
-      String tag, String msg) throws IOException {
+  public String printLog(int type, String msg) throws IOException {
 
-    Utils.checkAndCreateDir(logFileDir);
+    long timeMillis = System.currentTimeMillis();
+
+    checkAndCreateDir(logFileDir);
 
     String timeFileInfo = FORMAT_FILE.get().format(timeMillis);
-    String logFileName = logFilePrefix + timeFileInfo + FILE_FORMAT;
+    String logFileName = logTag + DEFAULT_FILE_PREFIX + timeFileInfo + FILE_FORMAT;
 
     File logFile = new File(logFileDir, logFileName);
-    boolean createFileFlag = createLogFile(logFile);
+    boolean createFileFlag = createFile(logFile);
 
     String timeInfo = FORMAT_INFO.get().format(timeMillis);
     try {
-      writeInfo(logFile, timeInfo, type, tag, msg);
+      writeInfo(logFile, timeInfo, LLogger.mapperType(type), logTag, msg);
     } catch (IOException e) {
       throw new IOException("log info write fail", e);
     }
@@ -115,26 +112,6 @@ class FileLog {
     return zipFile;
   }
 
-  private static void writeZipFile(ZipOutputStream zipOutputStream, File file) throws IOException {
-    FileInputStream fileInputStream = null;
-    try {
-      fileInputStream = new FileInputStream(file);
-      ZipEntry zipEntry = new ZipEntry(file.getName());
-      zipOutputStream.putNextEntry(zipEntry);
-
-      byte[] bytes = new byte[1024];
-      int length;
-      while ((length = fileInputStream.read(bytes)) >= 0) {
-        zipOutputStream.write(bytes, 0, length);
-      }
-    } finally {
-      if (fileInputStream != null) {
-        fileInputStream.close();
-      }
-    }
-
-  }
-
   public List<File> fetchLogFiles(long beginTime)
       throws FileNotFoundException {
     if (logFileDir == null || !logFileDir.exists()) {
@@ -150,7 +127,7 @@ class FileLog {
     ArrayList<File> logFiles = new ArrayList<>();
     for (File file : files) {
       String fileName = file.getName();
-      if (!fileName.startsWith(logFilePrefix) || !fileName.endsWith(FILE_FORMAT)) {
+      if (!fileName.startsWith(logTag) || !fileName.endsWith(FILE_FORMAT)) {
         //去除非目标日志 即非固定前缀和固定后缀的文件名
         continue;
       }
@@ -160,7 +137,7 @@ class FileLog {
         logFiles.add(file);
       } else {
         String timeFileInfo = fileName
-            .substring(logFilePrefix.length(), fileName.length() - FILE_FORMAT.length());
+            .substring(logTag.length(), fileName.length() - FILE_FORMAT.length());
         long fileTime = getFileTime(timeFileInfo);
         if (fileTime >= beginTime) {
           //log文件保存时间 >= 限定开始时间 即在限定时间之后的日志
@@ -188,7 +165,7 @@ class FileLog {
     return date != null ? date.getTime() : 0;
   }
 
-  private static void writeInfo(File logFile, String timePrefix, int type, String tag,
+  private static void writeInfo(File logFile, String timePrefix, String type, String tag,
       String msg)
       throws IOException {
 
@@ -198,7 +175,7 @@ class FileLog {
         + SPACING
         + threadName
         + SPACING
-        + mapperType(type)
+        + type
         + '/'
         + tag
         + ':'
@@ -208,7 +185,66 @@ class FileLog {
     mappedByteBufferWrite(logFile, output);
   }
 
-  private static void mappedByteBufferWrite(File logFile, String output)
+  static void checkDirFile(File logFileDir) {
+    if (logFileDir == null) {
+      throw new NullPointerException("logFileDir == null");
+    }
+
+    if (logFileDir.exists() && !logFileDir.isDirectory()) {
+      throw new IllegalArgumentException("logFileDir must be directory");
+    }
+  }
+
+  static void checkAndCreateDir(File logFileDir) throws FileNotFoundException {
+    if (logFileDir == null) {
+      throw new FileNotFoundException("logFileDir == nul");
+    }
+
+    if (!logFileDir.exists()) {
+      boolean mkdirs = logFileDir.mkdirs();
+      if (!mkdirs) {
+        throw new FileNotFoundException("logFileDir mkdirs failed");
+      }
+    }
+  }
+
+  static boolean createFile(File file) throws IOException {
+
+    if (file.exists()) {
+      if (!file.isFile()) {
+        throw new IOException(
+            "file " + file.getAbsolutePath() + " is not file cannot input log");
+      }
+      return false;
+    } else {
+      try {
+        return file.createNewFile();
+      } catch (IOException e) {
+        throw new IOException("file" + file.getAbsolutePath() + " createNewFile fail", e);
+      }
+    }
+  }
+
+  static void writeZipFile(ZipOutputStream zipOutputStream, File file) throws IOException {
+    FileInputStream fileInputStream = null;
+    try {
+      fileInputStream = new FileInputStream(file);
+      ZipEntry zipEntry = new ZipEntry(file.getName());
+      zipOutputStream.putNextEntry(zipEntry);
+
+      byte[] bytes = new byte[1024];
+      int length;
+      while ((length = fileInputStream.read(bytes)) >= 0) {
+        zipOutputStream.write(bytes, 0, length);
+      }
+    } finally {
+      if (fileInputStream != null) {
+        fileInputStream.close();
+      }
+    }
+  }
+
+  static void mappedByteBufferWrite(File logFile, String output)
       throws IOException {
     byte[] srcByte = output.getBytes();
     int length = srcByte.length;
@@ -229,21 +265,5 @@ class FileLog {
     }
   }
 
-  private static boolean createLogFile(File logFile) throws IOException {
-
-    if (logFile.exists()) {
-      if (!logFile.isFile()) {
-        throw new IOException(
-            "file " + logFile.getAbsolutePath() + " is not file cannot input log");
-      }
-      return false;
-    } else {
-      try {
-        return logFile.createNewFile();
-      } catch (IOException e) {
-        throw new IOException("file" + logFile.getAbsolutePath() + " createNewFile fail", e);
-      }
-    }
-  }
 
 }

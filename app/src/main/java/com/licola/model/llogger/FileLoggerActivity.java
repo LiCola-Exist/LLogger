@@ -23,7 +23,7 @@ public class FileLoggerActivity extends AppCompatActivity {
   public void onClickFetchLogListAll(View view) {
 
     try {
-      List<File> logFileAll = LLogger.fetchLogList();
+      List<File> logFileAll = LLogger.logList();
       LLogger.d(logFileAll);
     } catch (FileNotFoundException e) {
       LLogger.e(e);
@@ -33,7 +33,7 @@ public class FileLoggerActivity extends AppCompatActivity {
   public void onClickFetchLogList(View view) {
 
     try {
-      List<File> logFileAll = LLogger.fetchLogList(24);
+      List<File> logFileAll = LLogger.logList(24);
       LLogger.d(logFileAll);
     } catch (FileNotFoundException e) {
       LLogger.e(e);
@@ -43,7 +43,7 @@ public class FileLoggerActivity extends AppCompatActivity {
   public void onClickZipLogFile(View view) {
 
     try {
-      File logZipFile = LLogger.makeLogZipFile("log.zip");
+      File logZipFile = LLogger.logZipFile("log.zip");
       LLogger.d("get log zip file:" + logZipFile.getAbsolutePath());
     } catch (IOException e) {
       LLogger.e(e);
@@ -53,7 +53,7 @@ public class FileLoggerActivity extends AppCompatActivity {
   public void onClickZipLogFileWithTime(View view) {
 
     try {
-      File logZipFile = LLogger.makeLogZipFile("log.zip", 24);//当前时间的前几个小时，如果为0表示当前小时
+      File logZipFile = LLogger.logZipFile("log.zip", 24);//当前时间的前几个小时，如果为0表示当前小时
       LLogger.d("get log zip file:" + logZipFile.getAbsolutePath());
     } catch (IOException e) {
       LLogger.e(e);

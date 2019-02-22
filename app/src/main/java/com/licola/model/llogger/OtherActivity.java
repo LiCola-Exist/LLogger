@@ -24,9 +24,6 @@ public class OtherActivity extends AppCompatActivity {
      */
     CrashReport.initCrashReport(getApplicationContext(), "90697d4cad", true);
 
-    //开启主线程耗时任务检测
-    LLogger.startMonitor();
-
     final UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread
         .getDefaultUncaughtExceptionHandler();
 

@@ -1,7 +1,5 @@
 package com.licola.llogger;
 
-import static com.licola.llogger.LLogger.mapperType;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -18,22 +16,16 @@ class JavaLogger extends Logger {
     }
   };
 
+  public JavaLogger(String logTag) {
+    super(logTag);
+  }
+
   @Override
-  public void logType(int type, String tag, String msg) {
+  public void log(int type, String tag, String msg) {
     String timePrefix = FORMAT_INFO.get().format(new Date(System.currentTimeMillis()));
     String threadName = Thread.currentThread().getName();
-    String out = timePrefix + " " + threadName + " " + mapperType(type) + "/" + tag + ": " + msg;
+    String out = timePrefix + " " + threadName + " " + LLogger.mapperType(type) + "/" + tag + ": " + msg;
     System.out.println(out);
-  }
-
-  @Override
-  void startMonitor(long timeOut) {
-    throw new UnsupportedOperationException("Java 环境不支持UI线程检测");
-  }
-
-  @Override
-  void stopMonitor() {
-    throw new UnsupportedOperationException("Java 环境不支持UI线程检测");
   }
 
 }

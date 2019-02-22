@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.licola.llogger.LLogger;
+import java.io.File;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,6 +88,13 @@ public class LoggerActivity extends AppCompatActivity {
   public void onClickLogInnerClass(View view) {
     MyRunnable myRunnable = new MyRunnable();
     myRunnable.run();
+  }
+
+  public void onClickInstanceOther(View view) {
+    LLogger lLogger = LLogger.create("Other", new File(getCacheDir(), "other"));
+    lLogger.printLog(LLogger.V);
+    lLogger.printLog(LLogger.D);
+    lLogger.printTrace();
   }
 
   class MyRunnable implements Runnable {

@@ -4,18 +4,15 @@ package com.licola.llogger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Log日志工具类
- * 1:支持打印行号、方法、内部类名
- * 2:支持在Logcat中的点击行号跳转代码
- * 3:支持空参，单一参数，多参数打印
- * 4:支持log日志信息写入本地文件,以时间为节点，避免日志过长，且支持打包log文件
- * 5:支持Java环境log打印，如在android的test本地单元测试中打印
+ * Log日志工具类 1:支持打印行号、方法、内部类名 2:支持在Logcat中的点击行号跳转代码 3:支持空参，单一参数，多参数打印
+ * 4:支持log日志信息写入本地文件,以时间为节点，避免日志过长，且支持打包log文件 5:支持Java环境log打印，如在android的test本地单元测试中打印
  * 6:支持JSON字符串、JSON对象、JSON数组友好格式化打印 7:支持超长4000+字符串长度打印
  *
  * 基于：https://github.com/ZhaoKaiQiang/KLog项目改造
@@ -32,7 +29,7 @@ public final class LLogger {
   private static final String SUFFIX_JAVA = ".java";
   private static final String ANONYMITY_JAVA_FLAG = "$";
 
-  private static final String DEFAULT_TAG = "LLogger";
+  public static final String DEFAULT_TAG = "LLogger";
   private static final long FETCH_ALL_LOG = 0;
   private static final long HOUR_TIME = 60 * 60 * 1000;
 
@@ -45,201 +42,238 @@ public final class LLogger {
   public static final int E = 0x5;
   public static final int A = 0x6;
 
+  private static LLogger LLOGGER;
 
-  private static boolean mShowLog = true;//默认显示log
-  static String TAG = DEFAULT_TAG;
+  private final Logger logger;
+  private final FileLog fileLog;
 
-  private static Logger logger;
-  private static FileLog fileLog;
+  private LLogger(Logger logger, FileLog fileLog) {
+    this.logger = logger;
+    this.fileLog = fileLog;
+  }
 
-  static {
-    boolean androidAvailable = AndroidLogger.isAndroidLogAvailable();
-    logger = androidAvailable ? new AndroidLogger() : new JavaLogger();
+  public static LLogger create() {
+    return new LLogger(Logger.findPlatform(DEFAULT_TAG), null);
+  }
+
+  public static LLogger create(String tag) {
+    return new LLogger(Logger.findPlatform(tag), null);
+  }
+
+  public static LLogger create(String tag, File logFileDir) {
+    return new LLogger(Logger.findPlatform(tag), new FileLog(tag, logFileDir));
   }
 
   /**
    * 配置方法
-   *
-   * @param showLog true：打印log false：不打印
    */
-  public static void init(boolean showLog) {
-    init(showLog, DEFAULT_TAG);
+  public static void init() {
+    LLOGGER = create();
   }
 
   /**
    * 配置方法
    *
-   * @param showLog showLog true：打印log false：不打印
    * @param tag log的tag显示
    */
-  public static void init(boolean showLog, String tag) {
-    mShowLog = showLog;
-    TAG = tag;
+  public static void init(String tag) {
+    LLOGGER = create(tag);
   }
 
   /**
    * 配置方法
    *
-   * @param showLog showLog true：打印log false：不打印
    * @param tag log的tag显示
    * @param logFileDir log
    */
-  public static void init(boolean showLog, String tag, File logFileDir) {
-    init(showLog, tag, logFileDir, FileLog.DEFAULT_FILE_PREFIX);
+  public static void init(String tag, File logFileDir) {
+    LLOGGER = create(tag, logFileDir);
   }
-
-  public static void init(boolean showLog, String tag, File logFileDir, String logFilePrefix) {
-    mShowLog = showLog;
-    TAG = tag;
-    fileLog = new FileLog(logFileDir, logFilePrefix);
-  }
-
 
   public static void v() {
-    printLog(V, DEFAULT_MESSAGE);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(V);
+    }
   }
 
   public static void v(Object msg) {
-    printLog(V, msg);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(V, msg);
+    }
   }
 
   public static void v(Object... objects) {
-    printLog(V, objects);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(V, objects);
+    }
   }
 
   public static void d() {
-    printLog(D, DEFAULT_MESSAGE);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(D);
+    }
   }
 
   public static void d(Object msg) {
-    printLog(D, msg);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(D, msg);
+    }
   }
 
   public static void d(Object... objects) {
-    printLog(D, objects);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(D, objects);
+    }
   }
 
   public static void i() {
-    printLog(I, DEFAULT_MESSAGE);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(I);
+    }
   }
 
   public static void i(Object msg) {
-    printLog(I, msg);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(I, msg);
+    }
   }
 
   public static void i(Object... objects) {
-    printLog(I, objects);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(I, objects);
+    }
   }
 
   public static void w() {
-    printLog(W, DEFAULT_MESSAGE);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(W);
+    }
   }
 
   public static void w(Object msg) {
-    printLog(W, msg);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(W, msg);
+    }
   }
 
   public static void w(Object... objects) {
-    printLog(W, objects);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(W, objects);
+    }
   }
 
   public static void e() {
-    printLog(E, DEFAULT_MESSAGE);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(E);
+    }
   }
 
   public static void e(Object msg) {
-    printLog(E, msg);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(E, msg);
+    }
   }
 
-  public static void e(Throwable throwable){
-    printLog(E,Utils.getStackTraceString(throwable));
+  public static void e(Throwable throwable) {
+    if (LLOGGER != null) {
+      LLOGGER.printLog(E, Utils.getStackTraceString(throwable));
+    }
   }
 
   public static void e(Object... objects) {
-    printLog(E, objects);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(E, objects);
+    }
   }
 
   public static void a() {
-    printLog(A, DEFAULT_MESSAGE);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(A);
+    }
   }
 
   public static void a(Object msg) {
-    printLog(A, msg);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(A, msg);
+    }
   }
 
   public static void a(Object... objects) {
-    printLog(A, objects);
+    if (LLOGGER != null) {
+      LLOGGER.printLog(A, objects);
+    }
   }
 
   /**
    * @see #trace(String)
    */
   public static void trace() {
-    printStackTrace(DEFAULT_TRACE);
+    if (LLOGGER != null) {
+      LLOGGER.printTrace();
+    }
   }
 
   /**
    * 打印代码调用栈，在引入的混淆导致无法正确获取代码信息
    */
   public static void trace(String msg) {
-    printStackTrace(msg);
-  }
-
-  /**
-   * 开启检测主线程耗时任务功能
-   */
-  public static void startMonitor() {
-    logger.startMonitor(AndroidUIMonitor.TIME_OUT_LIMIT);
-  }
-
-  /**
-   * 开启检测主线程耗时任务功能 ，如果任务执行超过指定时间，会log打印出相关代码行
-   *
-   * @param timeOut 指定主线程任务执行最大时间
-   */
-  public static void startMonitor(long timeOut) {
-    logger.startMonitor(timeOut);
-  }
-
-  /**
-   * 停止主线程耗时任务检测
-   */
-  public static void stopMonitor() {
-    logger.stopMonitor();
+    if (LLOGGER != null) {
+      LLOGGER.printTrace(msg);
+    }
   }
 
   public static void json(JSONObject jsonObject) {
-    printJson(jsonObject);
+    if (LLOGGER != null) {
+      LLOGGER.printJson(jsonObject);
+    }
   }
 
   public static void json(JSONArray jsonArray) {
-    printJson(jsonArray);
+    if (LLOGGER != null) {
+      LLOGGER.printJson(jsonArray);
+    }
   }
 
-  private static void printLog(int type, Object... objects) {
-    if (!mShowLog) {
-      return;
-    }
+  public void printTrace() {
+    String headString = wrapperContent();
+    logger.printLog(D, headString + Utils.getStackTrace());
+  }
+
+  public void printTrace(String msg) {
+    String headString = wrapperContent();
+    logger.printLog(D, headString + msg + Utils.getStackTrace());
+  }
+
+  public void printLog(int type) {
+    printLog(type, new Object[]{DEFAULT_MESSAGE});
+  }
+
+  public void printLog(int type, Object object) {
+    printLog(type, new Object[]{object});
+  }
+
+  public void printLog(int type, Object... objects) {
 
     String headString = wrapperContent();
     String msg = (objects == null) ? NULL : getObjectsString(objects);
 
     String message = headString + msg;
 
-    logger.log(type, TAG, message);
+    logger.printLog(type, message);
 
     if (fileLog != null) {
-      printFile(type, TAG, message);
+      try {
+        String fileLogPath = fileLog.printLog(type, msg);
+        if (fileLogPath != null) {
+          logger.printLog(I, "create log file " + fileLogPath);
+        }
+      } catch (IOException e) {
+        logger.printLog(E, e.toString());
+      }
     }
   }
 
-  public static void printJson(Object object) {
-
-    if (!mShowLog) {
-      return;
-    }
-
-    String headString = wrapperContent();
+  public void printJson(Object object) {
 
     int type = I;
     String msg;
@@ -256,27 +290,9 @@ public final class LLogger {
       msg = Utils.getStackTraceString(e);
     }
 
-    String message = headString + LINE_SEPARATOR + msg;
-    logger.log(type, TAG, message);
-
-    if (fileLog != null) {
-      printFile(type, TAG, message);
-    }
-
+    LLOGGER.printLog(type, LINE_SEPARATOR + msg);
   }
 
-  private static void printFile(int type, String tag, String msg) {
-
-    long timeMillis = System.currentTimeMillis();
-    try {
-      String fileLogPath = fileLog.printFileLog(timeMillis, type, tag, msg);
-      if (fileLogPath != null) {
-        logger.log(I, TAG, "create log file " + fileLogPath);
-      }
-    } catch (IOException e) {
-      logger.log(E, TAG, e.toString());
-    }
-  }
 
   /**
    * 获取日志目录下的日志文件，空参没有限定时间，即所有的log日志文件
@@ -284,8 +300,13 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
-  public static List<File> fetchLogList() throws FileNotFoundException {
-    return fetchLogList(FETCH_ALL_LOG);
+  public static List<File> logList() throws FileNotFoundException {
+
+    if (LLOGGER != null) {
+      return LLOGGER.fetchLogList(FETCH_ALL_LOG);
+    }
+
+    return Collections.EMPTY_LIST;
   }
 
   /**
@@ -295,10 +316,15 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
-  public static List<File> fetchLogList(int lastHour) throws FileNotFoundException {
-    long curTime = System.currentTimeMillis();
-    long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
-    return fetchLogList(beginTime);
+  public static List<File> logList(int lastHour) throws FileNotFoundException {
+
+    if (LLOGGER != null) {
+      long curTime = System.currentTimeMillis();
+      long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
+      return LLOGGER.fetchLogList(beginTime);
+    }
+
+    return Collections.EMPTY_LIST;
   }
 
   /**
@@ -308,7 +334,8 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
-  public static List<File> fetchLogList(long beginTime) throws FileNotFoundException {
+  public List<File> fetchLogList(long beginTime) throws FileNotFoundException {
+
     if (fileLog == null) {
       throw new FileNotFoundException("没有配置日志目录");
     }
@@ -321,11 +348,14 @@ public final class LLogger {
    *
    * @param zipFileName 压缩包文件名
    * @throws IOException 压缩文件操作异常
-   * @see com.licola.llogger.LLogger#fetchLogList()
+   * @see com.licola.llogger.LLogger#logList()
    */
-  public static File makeLogZipFile(String zipFileName)
+  public static File logZipFile(String zipFileName)
       throws IOException {
-    return makeLogZipFile(zipFileName, FETCH_ALL_LOG);
+    if (LLOGGER != null) {
+      return LLOGGER.makeLogZipFile(zipFileName, FETCH_ALL_LOG);
+    }
+    return null;
   }
 
 
@@ -336,13 +366,18 @@ public final class LLogger {
    * @param lastHour 当前时间的前几个小时，如果为0表示当前小时
    * @return 压缩的log文件zip
    * @throws IOException 压缩文件操作异常
-   * @see com.licola.llogger.LLogger#fetchLogList(int)
+   * @see com.licola.llogger.LLogger#logList(int)
    */
-  public static File makeLogZipFile(String zipFileName, int lastHour)
+  public static File logZipFile(String zipFileName, int lastHour)
       throws IOException {
-    long curTime = System.currentTimeMillis();
-    long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
-    return makeLogZipFile(zipFileName, beginTime);
+
+    if (LLOGGER != null) {
+      long curTime = System.currentTimeMillis();
+      long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
+      return LLOGGER.makeLogZipFile(zipFileName, beginTime);
+    }
+
+    return null;
   }
 
   /**
@@ -352,9 +387,9 @@ public final class LLogger {
    * @param beginTime 限定的日志开始时间 即[beginTime(开始时间)~当前时间]，如果为0表示没有时间限制，打包所有的log文件
    * @return 压缩的log文件zip
    * @throws IOException 压缩文件操作异常
-   * @see com.licola.llogger.LLogger#fetchLogList(long)
+   * @see LLogger#logList(int)
    */
-  public static File makeLogZipFile(String zipFileName, long beginTime)
+  public File makeLogZipFile(String zipFileName, long beginTime)
       throws IOException {
 
     if (fileLog == null) {
@@ -362,16 +397,6 @@ public final class LLogger {
     }
 
     return fileLog.makeZipFile(zipFileName, beginTime);
-  }
-
-
-  private static void printStackTrace(String msg) {
-    if (!mShowLog) {
-      return;
-    }
-
-    String headString = wrapperContent();
-    logger.log(D, TAG, headString + msg + Utils.getStackTrace());
   }
 
 

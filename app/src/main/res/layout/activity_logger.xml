@@ -55,6 +55,11 @@
       android:onClick="onClickLogInnerClass"
       android:text="log-inner-class" />
 
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:onClick="onClickInstanceOther"
+      android:text="log-instance-other" />
 
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>
