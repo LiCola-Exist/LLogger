@@ -5,8 +5,7 @@
 
 # 作用
 日志工具，支持更多信息的打印
- - 支持打印行号、方法、内部类名（支持开关参数）
- - 支持在Logcat中的点击行号跳转代码
+ - 支持打印行号、方法、内部类名，支持在Logcat中的点击行号跳转代码
  - 支持空参，单一参数，多参数打印
  - 支持log日志信息写入本地文件,以时间为节点，避免日志内容过长，且支持获取和压缩打包log文件
  - 支持Java环境log打印，打印内容近似Android-Logcat风格
@@ -36,9 +35,12 @@
     LLogger.d("debug", "more info");
     LLogger.json(jsonObject);
     LLogger.trace();//打印方法调用栈
+    
+    List<File> logFileAll = LLogger.logList();//获取全部日志文件
+    File logZipFile = LLogger.logZipFile("log.zip", 24);//当前时间的前几个小时，如果为0表示当前小时，获取前24小时的日志文件并打包压缩到zip包中
 ```
 
-其实使用：创建LLogger日志实例，在某些模块使用（不同的日志实例拥有不同的日志目录）
+其他使用：创建LLogger日志实例，在某些模块使用（不同的日志实例拥有不同的日志目录）
 ```java
       LLogger lLogger = LLogger.create(false, "Other", new File(getCacheDir(), "other"));
       lLogger.printLog(LLogger.V);
@@ -47,9 +49,6 @@
       lLogger.printTrace();
       
       List<File> files = lLogger.fetchLogList(2);//获取前2小时的日志
-      for (File file : files) {
-        lLogger.printLog(LLogger.I, file);
-      }
 ```
 
 # 配置
