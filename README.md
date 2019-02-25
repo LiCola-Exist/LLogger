@@ -37,23 +37,12 @@
     LLogger.trace();//打印方法调用栈
     
     List<File> logFileAll = LLogger.logList();//获取全部日志文件
-    File logZipFile = LLogger.logZipFile("log.zip", 24);//当前时间的前几个小时，如果为0表示当前小时，获取前24小时的日志文件并打包压缩到zip包中
-```
-
-其他使用：创建LLogger日志实例，在某些模块使用（不同的日志实例拥有不同的日志目录）
-```java
-      LLogger lLogger = LLogger.create(false, "Other", new File(getCacheDir(), "other"));
-      lLogger.printLog(LLogger.V);
-      lLogger.printLog(LLogger.D);
-      lLogger.printJson(new JSONObject().put("key", "value"));
-      lLogger.printTrace();
-      
-      List<File> files = lLogger.fetchLogList(2);//获取前2小时的日志
+    File logZipFile = LLogger.logZipFile("log.zip", 24);//获取前24小时的日志文件并打包压缩到zip包中，如果为0表示当前小时，
 ```
 
 # 配置
 LLogger默认不打印log，默认不写入log文件。
-默认tag为```LLogger```，提供静态方法一行参考控制日志输出。
+默认tag为```LLogger```，提供静态方法一行参数控制日志。
 
 在实际项目需要配置参数，建议在```Application```类中初始化配置，下面示例代码
 ```java
@@ -94,10 +83,21 @@ public class MyApplication extends Application {
     }
 }
 ```
-
 # 效果图
 
 ![log信息](https://github.com/LiCola/LLogger/blob/master/image/android-log.png)
+
+# 其他使用
+创建LLogger日志实例，在某些模块使用（不同的日志实例拥有不同的日志目录）
+```java
+      LLogger lLogger = LLogger.create(false, "Other", new File(getCacheDir(), "other"));
+      lLogger.printLog(LLogger.V);
+      lLogger.printLog(LLogger.D);
+      lLogger.printJson(new JSONObject().put("key", "value"));
+      lLogger.printTrace();
+      
+      List<File> files = lLogger.fetchLogList(2);
+```
 
 # 关于log本地文件
 可以看到上图的```LLogger_2018-06-04_18.log```日志行，表示创建以小时为节点的log文件。
