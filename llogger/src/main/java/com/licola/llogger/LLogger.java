@@ -22,14 +22,15 @@ public final class LLogger {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String DEFAULT_MESSAGE = "execute";
-  private static final String DEFAULT_TRACE = "trace";
   private static final String ARGUMENTS = "argument";
   private static final String NULL = "null";
 
   private static final String SUFFIX_JAVA = ".java";
   private static final String ANONYMITY_JAVA_FLAG = "$";
 
-  public static final String DEFAULT_TAG = "LLogger";
+  static final String DEFAULT_TAG = "LLogger";
+  private static final boolean DEFAULT_SHOW_LINE = true;
+
   private static final long FETCH_ALL_LOG = 0;
   private static final long HOUR_TIME = 60 * 60 * 1000;
 
@@ -44,31 +45,41 @@ public final class LLogger {
 
   private static LLogger LLOGGER;
 
+  private final boolean showLine;
   private final Logger logger;
   private final FileLog fileLog;
 
-  private LLogger(Logger logger, FileLog fileLog) {
+  public LLogger(boolean showLine, Logger logger, FileLog fileLog) {
+    this.showLine = showLine;
     this.logger = logger;
     this.fileLog = fileLog;
   }
 
   public static LLogger create() {
-    return new LLogger(Logger.findPlatform(DEFAULT_TAG), null);
+    return new LLogger(DEFAULT_SHOW_LINE, Logger.findPlatform(DEFAULT_TAG), null);
   }
 
-  public static LLogger create(String tag) {
-    return new LLogger(Logger.findPlatform(tag), null);
+  public static LLogger create(boolean showLine) {
+    return new LLogger(showLine, Logger.findPlatform(DEFAULT_TAG), null);
   }
 
-  public static LLogger create(String tag, File logFileDir) {
-    return new LLogger(Logger.findPlatform(tag), new FileLog(tag, logFileDir));
+  public static LLogger create(boolean showLine, String tag) {
+    return new LLogger(showLine, Logger.findPlatform(tag), null);
+  }
+
+  public static LLogger create(boolean showLine, String tag, File logFileDir) {
+    return new LLogger(showLine, Logger.findPlatform(tag), new FileLog(tag, logFileDir));
+  }
+
+  public static void init() {
+    LLOGGER = create();
   }
 
   /**
    * 配置方法
    */
-  public static void init() {
-    LLOGGER = create();
+  public static void init(boolean showLine) {
+    LLOGGER = create(showLine);
   }
 
   /**
@@ -76,8 +87,8 @@ public final class LLogger {
    *
    * @param tag log的tag显示
    */
-  public static void init(String tag) {
-    LLOGGER = create(tag);
+  public static void init(boolean showLine, String tag) {
+    LLOGGER = create(showLine, tag);
   }
 
   /**
@@ -86,8 +97,8 @@ public final class LLogger {
    * @param tag log的tag显示
    * @param logFileDir log
    */
-  public static void init(String tag, File logFileDir) {
-    LLOGGER = create(tag, logFileDir);
+  public static void init(boolean showLine, String tag, File logFileDir) {
+    LLOGGER = create(showLine, tag, logFileDir);
   }
 
   public static void v() {
@@ -236,12 +247,12 @@ public final class LLogger {
 
   public void printTrace() {
     String headString = wrapperContent();
-    logger.printLog(D, headString + Utils.getStackTrace());
+    printLog(D, headString + Utils.getStackTrace());
   }
 
   public void printTrace(String msg) {
     String headString = wrapperContent();
-    logger.printLog(D, headString + msg + Utils.getStackTrace());
+    printLog(D, headString + msg + Utils.getStackTrace());
   }
 
   public void printLog(int type) {
@@ -254,43 +265,55 @@ public final class LLogger {
 
   public void printLog(int type, Object... objects) {
 
-    String headString = wrapperContent();
-    String msg = (objects == null) ? NULL : getObjectsString(objects);
+    String message;
 
-    String message = headString + msg;
+    if (showLine) {
+      String headString = wrapperContent();
+      message = headString + ((objects == null) ? NULL : getObjectsString(objects));
+    } else {
+      message = (objects == null) ? NULL : getObjectsString(objects);
+    }
 
-    logger.printLog(type, message);
+    logger.log(type, message);
 
     if (fileLog != null) {
       try {
-        String fileLogPath = fileLog.printLog(type, msg);
+        String fileLogPath = fileLog.printLog(type, message);
         if (fileLogPath != null) {
-          logger.printLog(I, "create log file " + fileLogPath);
+          logger.log(I, "create log file " + fileLogPath);
         }
       } catch (IOException e) {
-        logger.printLog(E, e.toString());
+        logger.log(E, e.toString());
       }
     }
   }
 
-  public void printJson(Object object) {
+  public void printJson(JSONObject object) {
 
     int type = I;
     String msg;
     try {
-      if (object instanceof JSONObject) {
-        msg = ((JSONObject) object).toString(JSON_INDENT);
-      } else if (object instanceof JSONArray) {
-        msg = ((JSONArray) object).toString(JSON_INDENT);
-      } else {
-        throw new JSONException("非Json类型");
-      }
+      msg = object.toString(JSON_INDENT);
     } catch (JSONException e) {
       type = E;
       msg = Utils.getStackTraceString(e);
     }
 
-    LLOGGER.printLog(type, LINE_SEPARATOR + msg);
+    printLog(type, "JSONObject" + LINE_SEPARATOR + msg);
+  }
+
+  public void printJson(JSONArray object) {
+
+    int type = I;
+    String msg;
+    try {
+      msg = object.toString(JSON_INDENT);
+    } catch (JSONException e) {
+      type = E;
+      msg = Utils.getStackTraceString(e);
+    }
+
+    printLog(type, "JSONArray" + LINE_SEPARATOR + msg);
   }
 
 
@@ -303,7 +326,7 @@ public final class LLogger {
   public static List<File> logList() throws FileNotFoundException {
 
     if (LLOGGER != null) {
-      return LLOGGER.fetchLogList(FETCH_ALL_LOG);
+      return LLOGGER.fetchLogList();
     }
 
     return Collections.EMPTY_LIST;
@@ -319,9 +342,7 @@ public final class LLogger {
   public static List<File> logList(int lastHour) throws FileNotFoundException {
 
     if (LLOGGER != null) {
-      long curTime = System.currentTimeMillis();
-      long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
-      return LLOGGER.fetchLogList(beginTime);
+      return LLOGGER.fetchLogList(lastHour);
     }
 
     return Collections.EMPTY_LIST;
@@ -334,6 +355,36 @@ public final class LLogger {
    * @return 符合限定时间的文件列表
    * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
    */
+  public static List<File> logList(long beginTime) throws FileNotFoundException {
+
+    if (LLOGGER != null) {
+      return LLOGGER.fetchLogList(beginTime);
+    }
+
+    return Collections.EMPTY_LIST;
+  }
+
+  public List<File> fetchLogList() throws FileNotFoundException {
+
+    if (fileLog == null) {
+      throw new FileNotFoundException("没有配置日志目录");
+    }
+
+    return fileLog.fetchLogFiles(FETCH_ALL_LOG);
+  }
+
+  public List<File> fetchLogList(int lastHour) throws FileNotFoundException {
+
+    if (fileLog == null) {
+      throw new FileNotFoundException("没有配置日志目录");
+    }
+
+    long curTime = System.currentTimeMillis();
+    long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
+
+    return fileLog.fetchLogFiles(beginTime);
+  }
+
   public List<File> fetchLogList(long beginTime) throws FileNotFoundException {
 
     if (fileLog == null) {

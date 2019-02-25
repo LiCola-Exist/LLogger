@@ -41,7 +41,7 @@ abstract class Logger {
     }
   }
 
-  public void printLog(int type, String msg) {
+  public void log(int type, String msg) {
     int index = 0;
     int length = msg.length();
     int countOfSub = length / MAX_LENGTH;

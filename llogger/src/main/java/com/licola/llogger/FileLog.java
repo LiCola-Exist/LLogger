@@ -24,7 +24,7 @@ class FileLog {
 
   private static final char SPACING = ' ';
   private static final String FILE_FORMAT = ".log";
-  static final String DEFAULT_FILE_PREFIX = "_";
+  private static final String DEFAULT_FILE_PREFIX = "_";
 
   private static final ThreadLocal<SimpleDateFormat> FORMAT_FILE = new ThreadLocal<SimpleDateFormat>() {
     @Override
@@ -137,7 +137,8 @@ class FileLog {
         logFiles.add(file);
       } else {
         String timeFileInfo = fileName
-            .substring(logTag.length(), fileName.length() - FILE_FORMAT.length());
+            .substring(logTag.length() + DEFAULT_FILE_PREFIX.length(),
+                fileName.length() - FILE_FORMAT.length());
         long fileTime = getFileTime(timeFileInfo);
         if (fileTime >= beginTime) {
           //log文件保存时间 >= 限定开始时间 即在限定时间之后的日志

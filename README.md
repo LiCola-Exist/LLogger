@@ -5,7 +5,7 @@
 
 # 作用
 日志工具，支持更多信息的打印
- - 支持打印行号、方法、内部类名
+ - 支持打印行号、方法、内部类名（支持开关参数）
  - 支持在Logcat中的点击行号跳转代码
  - 支持空参，单一参数，多参数打印
  - 支持log日志信息写入本地文件,以时间为节点，避免日志内容过长，且支持获取和压缩打包log文件
@@ -13,12 +13,13 @@
  - 支持JSON字符串、JSON对象、JSON数组友好格式化打印
  - 支持代码追踪调试，trace()方法打印方法调用栈（看源码效率工具）
  - 支持超长4000+字符串长度打印
- - 支持UI主线程耗时任务检测(Android环境)，打印耗时任务相关代码行
+ - ~~支持UI主线程耗时任务检测(Android环境)，打印耗时任务相关代码行~~
+ - 支持运行环境中多个LLogger日志实例，以外观模式简化调用（主要使用），并可以创建多个实例，以细分管理日志。
 
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.5"
+  implementation "com.licola:llogger:1.4.8"
 ```
 
 # 更新日志
@@ -26,19 +27,34 @@
  - 1.4.4:加入Json信息写入日志操作
  - 1.4.5:修复在特殊Android运行环境(如Xposed)的情况下某些log信息无效情况
  - 1.4.6:修改部分对象使用方式，优化内存。
+ - 1.4.8:加入日志对象的创建，并暴露给外部使用，以实现运行环境多个LLogger日志。
 # 使用
-静态方法，一行代码调用
+外观模式，静态方法，一行代码调用
 ```java
     LLogger.d();
     LLogger.d("debug");
     LLogger.d("debug", "more info");
     LLogger.json(jsonObject);
     LLogger.trace();//打印方法调用栈
-    LLogger.startMonitor();//开启主线程耗时任务检测
+```
+
+其实使用：创建LLogger日志实例，在某些模块使用（不同的日志实例拥有不同的日志目录）
+```java
+      LLogger lLogger = LLogger.create(false, "Other", new File(getCacheDir(), "other"));
+      lLogger.printLog(LLogger.V);
+      lLogger.printLog(LLogger.D);
+      lLogger.printJson(new JSONObject().put("key", "value"));
+      lLogger.printTrace();
+      
+      List<File> files = lLogger.fetchLogList(2);//获取前2小时的日志
+      for (File file : files) {
+        lLogger.printLog(LLogger.I, file);
+      }
 ```
 
 # 配置
-LLogger默认打印log，默认tag为```LLogger```，默认不写入log文件，导入即可用。
+LLogger默认不打印log，默认不写入log文件。
+默认tag为```LLogger```，提供静态方法一行参考控制日志输出。
 
 在实际项目需要配置参数，建议在```Application```类中初始化配置，下面示例代码
 ```java
@@ -47,47 +63,36 @@ LLogger默认打印log，默认tag为```LLogger```，默认不写入log文件，
  */
 public class MyApplication extends Application {
 
-   public static final String LOG_FILE_PREFIX = "LLogger_";
+    public static final String LOG_FILE_DIR = "log-files";
   
-   public static final String LOG_FILE_DIR = "log-files";
- 
-   private static final boolean SHOW_LOG = true;
- 
-   private static final String TAG = "Demo";
- 
-   @Override
-   public void onCreate() {
-     super.onCreate();
-     //常规使用
-     /**
-     * 打开log显示
-     */
-//    LLogger.init(SHOW_LOG);
-
-    /**
-     * 打开log显示 配置Tag
-     */
-//    LLogger.init(SHOW_LOG, TAG);
- 
-     /**
-     * 1：建议log文件存放在项目内部存储中，避免读写外部存储的权限处理
-     * 2：建议在cache下指定二级目录 存放log文件 避免cache中文件杂乱
-     */
-     File logDir = new File(getCacheDir(), LOG_FILE_DIR);
-        
-     /**
-     *打开log显示 配置Tag log信息写入本地目录
-     */
-//    LLogger.init(SHOW_LOG, TAG, logDir);
-     /**
-     * 打开log显示 配置tag log信息写入本地目录 并固定log文件前缀
-     */
-     LLogger.init(SHOW_LOG, TAG, logDir, LOG_FILE_PREFIX);
-     
-     //开启主线程耗时任务检测
-     LLogger.startMonitor();
-     
-   }
+    public static final String TAG = "Demo";
+  
+    @Override
+    public void onCreate() {
+      super.onCreate();
+  
+      /**
+       * 空参初始化：使用默认tag，默认打印行号，不写本地日志文件。
+       */
+  //    LLogger.init();
+  
+      /**
+       * 初始化：显示行号，配置tag，不写本地日志文件
+       */
+  //    LLogger.init(true,TAG);
+  
+      /**
+       * 1：建议log文件存放在项目内部存储中，避免读写外部存储的权限处理
+       * 2：建议在cache下指定二级目录 存放log文件 避免cache中文件杂乱
+       */
+      File logDir = new File(getCacheDir(), LOG_FILE_DIR);
+  
+      /**
+       * 初始化：显示行号，配置tag，log信息写入本地目录
+       */
+      LLogger.init(true, TAG, logDir);
+  
+    }
 }
 ```
 

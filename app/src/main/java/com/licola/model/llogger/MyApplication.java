@@ -18,14 +18,14 @@ public class MyApplication extends Application {
     super.onCreate();
 
     /**
-     * 打开log显示
+     * 空参初始化：使用默认tag，默认打印行号，不写本地日志文件。
      */
 //    LLogger.init();
 
     /**
-     * 打开log显示 配置Tag
+     * 初始化：显示行号，配置tag，不写本地日志文件
      */
-//    LLogger.init(TAG);
+//    LLogger.init(true,TAG);
 
     /**
      * 1：建议log文件存放在项目内部存储中，避免读写外部存储的权限处理
@@ -34,9 +34,9 @@ public class MyApplication extends Application {
     File logDir = new File(getCacheDir(), LOG_FILE_DIR);
 
     /**
-     * 打开log显示 配置tag log信息写入本地目录 并固定log文件前缀
+     * 初始化：显示行号，配置tag，log信息写入本地目录
      */
-    LLogger.init(TAG, logDir);
+    LLogger.init(true, TAG, logDir);
 
   }
 }

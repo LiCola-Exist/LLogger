@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.licola.llogger.LLogger;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,11 +92,17 @@ public class LoggerActivity extends AppCompatActivity {
     myRunnable.run();
   }
 
-  public void onClickInstanceOther(View view) {
-    LLogger lLogger = LLogger.create("Other", new File(getCacheDir(), "other"));
+  public void onClickInstanceOther(View view) throws JSONException, FileNotFoundException {
+    LLogger lLogger = LLogger.create(false, "Other", new File(getCacheDir(), "other"));
     lLogger.printLog(LLogger.V);
     lLogger.printLog(LLogger.D);
+    lLogger.printJson(new JSONObject().put("key", "value"));
     lLogger.printTrace();
+
+    List<File> files = lLogger.fetchLogList(2);//获取前2小时的日志
+    for (File file : files) {
+      lLogger.printLog(LLogger.I, file);
+    }
   }
 
   class MyRunnable implements Runnable {
