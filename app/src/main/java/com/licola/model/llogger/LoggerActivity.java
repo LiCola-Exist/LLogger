@@ -105,6 +105,17 @@ public class LoggerActivity extends AppCompatActivity {
     }
   }
 
+  public void onClickLogLongText(View view) {
+
+    String subText = "1234567890";
+    StringBuffer longText = new StringBuffer();
+    for (int i = 0; i < 500; i++) {
+      longText.append(subText);
+    }
+
+    LLogger.d(longText.toString());
+  }
+
   class MyRunnable implements Runnable {
 
     @Override

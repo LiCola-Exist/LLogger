@@ -18,7 +18,7 @@
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.8"
+  implementation "com.licola:llogger:1.4.9"
 ```
 
 # 更新日志
@@ -27,6 +27,7 @@
  - 1.4.5:修复在特殊Android运行环境(如Xposed)的情况下某些log信息无效情况
  - 1.4.6:修改部分对象使用方式，优化内存。
  - 1.4.8:加入日志对象的创建，并暴露给外部使用，以实现运行环境多个LLogger日志。
+ - 1.4.9:对日志文件读写加入读写锁处理，处理多线程同时写入漏写问题。
 # 使用
 外观模式，静态方法，一行代码调用
 ```java
@@ -159,6 +160,7 @@ log：06-04 19:02:18.971 main Debug/Java: [ (JavaMain.java:17)#main ] execute
 `MappedByteBuffer`-内存映射方案 `FileWriter`-普通IO，比对。
 目前在PC设备（i7/16G）上能够达到优化0.05ms效果（20W次log写入测试）。
 在移动设备上因为的内存GC的影响太大，无法具体确认优化效果，只能简单说能够达到1ms级别的优化效果。
+
 
 
 # 参考

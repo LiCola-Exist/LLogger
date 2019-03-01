@@ -284,6 +284,10 @@ public final class LLogger {
         }
       } catch (IOException e) {
         logger.log(E, e.toString());
+        Throwable cause = e.getCause();
+        if (cause!=null){
+          logger.log(E, cause.toString());
+        }
       }
     }
   }
@@ -400,6 +404,7 @@ public final class LLogger {
    * @param zipFileName 压缩包文件名
    * @throws IOException 压缩文件操作异常
    * @see com.licola.llogger.LLogger#logList()
+   * @return 如果没有配置 会返回null
    */
   public static File logZipFile(String zipFileName)
       throws IOException {

@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -24,7 +27,10 @@ class FileLog {
 
   private static final char SPACING = ' ';
   private static final String FILE_FORMAT = ".log";
+  private static final String ZIP_SUFFIX = ".zip";
   private static final String DEFAULT_FILE_PREFIX = "_";
+
+  private static final int BUFFER_SIZE = 4096;
 
   private static final ThreadLocal<SimpleDateFormat> FORMAT_FILE = new ThreadLocal<SimpleDateFormat>() {
     @Override
@@ -40,6 +46,8 @@ class FileLog {
     }
   };
 
+
+  private final ReadWriteLock readWriteLock;
   private final String logTag;
   private final File logFileDir;
 
@@ -47,25 +55,33 @@ class FileLog {
     checkDirFile(logFileDir);
     this.logFileDir = logFileDir;
     this.logTag = logTag;
+    this.readWriteLock = new ReentrantReadWriteLock(false);
   }
 
-  public String printLog(int type, String msg) throws IOException {
-
+  String printLog(int type, String msg) throws IOException {
     long timeMillis = System.currentTimeMillis();
-
-    checkAndCreateDir(logFileDir);
 
     String timeFileInfo = FORMAT_FILE.get().format(timeMillis);
     String logFileName = logTag + DEFAULT_FILE_PREFIX + timeFileInfo + FILE_FORMAT;
 
-    File logFile = new File(logFileDir, logFileName);
-    boolean createFileFlag = createFile(logFile);
-
     String timeInfo = FORMAT_INFO.get().format(timeMillis);
+
+    File logFile = new File(logFileDir, logFileName);
+
+    //写锁 获取锁
+    Lock writeLock = readWriteLock.writeLock();
+    writeLock.lock();
+    boolean createFileFlag;
     try {
+      //检查目标日志文件
+      createFileFlag = createFile(logFile);
+      //写入日志
       writeInfo(logFile, timeInfo, LLogger.mapperType(type), logTag, msg);
     } catch (IOException e) {
       throw new IOException("log info write fail", e);
+    } finally {
+      //写锁 释放锁
+      writeLock.unlock();
     }
 
     if (createFileFlag) {
@@ -75,12 +91,23 @@ class FileLog {
     }
   }
 
-  public File makeZipFile(String zipFileName, long beginTime)
+  File makeZipFile(String zipFileName, long beginTime)
       throws IOException {
 
-    List<File> files = fetchLogFiles(beginTime);
+    File zipFile;
 
-    File zipFile = new File(logFileDir, zipFileName);
+    if (zipFileName.endsWith(ZIP_SUFFIX)) {
+      zipFile = new File(logFileDir, zipFileName);
+    } else {
+      zipFile = new File(logFileDir, zipFileName + ZIP_SUFFIX);
+    }
+
+    //读锁 获取锁
+    Lock readLock = readWriteLock.readLock();
+    readLock.lock();
+
+    //重入
+    List<File> files = fetchLogFiles(beginTime);
 
     if (zipFile.exists()) {
       //防止已经存在的文件影响
@@ -88,7 +115,6 @@ class FileLog {
     }
 
     FileOutputStream zipFileOutputStream = new FileOutputStream(zipFile);
-
     ZipOutputStream zipOutputStream = new ZipOutputStream(zipFileOutputStream);
 
     try {
@@ -97,30 +123,33 @@ class FileLog {
       }
     } catch (IOException e) {
       throw new IOException("压缩日志文件异常", e);
-    }
-
-    try {
-      zipOutputStream.close();
-    } catch (IOException e) {
-    }
-
-    try {
-      zipFileOutputStream.close();
-    } catch (IOException e) {
+    } finally {
+      readLock.unlock();
+      try {
+        zipOutputStream.close();
+      } catch (IOException e) {
+      }
+      try {
+        zipFileOutputStream.close();
+      } catch (IOException e) {
+      }
     }
 
     return zipFile;
   }
 
-  public List<File> fetchLogFiles(long beginTime)
+  List<File> fetchLogFiles(long beginTime)
       throws FileNotFoundException {
-    if (logFileDir == null || !logFileDir.exists()) {
-      throw new FileNotFoundException("logFileDir == null or not exists");
-    }
+
+    //读锁 获取锁
+    Lock readLock = readWriteLock.readLock();
+    readLock.lock();
 
     File[] files = logFileDir.listFiles();
 
     if (files == null || files.length == 0) {
+      //释放锁
+      readLock.unlock();
       throw new FileNotFoundException(logFileDir.getAbsolutePath() + " is empty dir");
     }
 
@@ -147,11 +176,13 @@ class FileLog {
       }
     }
 
+    //释放锁
+    readLock.unlock();
     if (logFiles.isEmpty()) {
       throw new FileNotFoundException("No files meet the conditions of time");
+    } else {
+      return logFiles;
     }
-
-    return logFiles;
   }
 
   private static long getFileTime(String timeFileInfo) {
@@ -186,7 +217,7 @@ class FileLog {
     mappedByteBufferWrite(logFile, output);
   }
 
-  static void checkDirFile(File logFileDir) {
+  private static void checkDirFile(File logFileDir) {
     if (logFileDir == null) {
       throw new NullPointerException("logFileDir == null");
     }
@@ -194,22 +225,14 @@ class FileLog {
     if (logFileDir.exists() && !logFileDir.isDirectory()) {
       throw new IllegalArgumentException("logFileDir must be directory");
     }
-  }
 
-  static void checkAndCreateDir(File logFileDir) throws FileNotFoundException {
-    if (logFileDir == null) {
-      throw new FileNotFoundException("logFileDir == nul");
-    }
-
-    if (!logFileDir.exists()) {
-      boolean mkdirs = logFileDir.mkdirs();
-      if (!mkdirs) {
-        throw new FileNotFoundException("logFileDir mkdirs failed");
-      }
+    boolean mkdirs = logFileDir.mkdirs();
+    if (!mkdirs && !logFileDir.exists()) {
+      throw new RuntimeException("logFileDir mkdirs failed:" + logFileDir.getAbsolutePath());
     }
   }
 
-  static boolean createFile(File file) throws IOException {
+  private static boolean createFile(File file) throws IOException {
 
     if (file.exists()) {
       if (!file.isFile()) {
@@ -226,14 +249,14 @@ class FileLog {
     }
   }
 
-  static void writeZipFile(ZipOutputStream zipOutputStream, File file) throws IOException {
+  private static void writeZipFile(ZipOutputStream zipOutputStream, File file) throws IOException {
     FileInputStream fileInputStream = null;
     try {
       fileInputStream = new FileInputStream(file);
       ZipEntry zipEntry = new ZipEntry(file.getName());
       zipOutputStream.putNextEntry(zipEntry);
 
-      byte[] bytes = new byte[1024];
+      byte[] bytes = new byte[BUFFER_SIZE];
       int length;
       while ((length = fileInputStream.read(bytes)) >= 0) {
         zipOutputStream.write(bytes, 0, length);
@@ -245,7 +268,7 @@ class FileLog {
     }
   }
 
-  static void mappedByteBufferWrite(File logFile, String output)
+  private static void mappedByteBufferWrite(File logFile, String output)
       throws IOException {
     byte[] srcByte = output.getBytes();
     int length = srcByte.length;

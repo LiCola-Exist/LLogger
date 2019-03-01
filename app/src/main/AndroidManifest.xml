@@ -23,9 +23,16 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
-    <activity android:name=".LoggerActivity" />
-    <activity android:name=".FileLoggerActivity" />
-    <activity android:name=".OtherActivity"></activity>
+    <activity
+      android:exported="true"
+      android:name=".LoggerActivity" />
+    <activity
+      android:exported="true"
+      android:name=".FileLoggerActivity" />
+    <activity
+      android:exported="true"
+      android:name=".OtherActivity"
+      />
   </application>
 
 </manifest>

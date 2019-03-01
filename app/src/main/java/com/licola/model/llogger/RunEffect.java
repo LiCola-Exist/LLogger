@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 /**
  * 日志写入运行效率测试
+ *
  * @author LiCola
  * @date 2018/8/13
  */
@@ -25,14 +26,14 @@ public class RunEffect {
   }
 
   public static void testEffect() {
-    for (int i = 0; i < 100; i++) {
-      LLogger.d(CONTENT);
+    for (int i = 0; i < 10; i++) {
+      LLogger.d("先期预热:" + i);
     }
 
     ArrayList<String> results = new ArrayList<>();
-    for (int i = 10000; i > 0; i = i / 10) {
+    for (int i = 1000; i > 0; i = i / 10) {
       long all = runLogTime(i);
-      float time = (all / (i * 1.0f));
+      float time = all * 1.0f / i;
       results.add("times:" + i + " total:" + all + "ms" + " average:" + time + "ms");
     }
 

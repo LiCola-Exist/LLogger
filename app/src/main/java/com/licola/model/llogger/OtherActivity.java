@@ -6,6 +6,8 @@ import android.view.View;
 import com.licola.llogger.LLogger;
 import com.tencent.bugly.crashreport.BuglyLog;
 import com.tencent.bugly.crashreport.CrashReport;
+import java.io.File;
+import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 
 public class OtherActivity extends AppCompatActivity {
@@ -60,12 +62,7 @@ public class OtherActivity extends AppCompatActivity {
   }
 
   public void onClickCheckEffectRun(View view) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        RunEffect.testEffect();
-      }
-    }).start();
+    RunEffect.testEffect();
   }
 
   public void onClickCheckEffectMemory(View view) {
@@ -73,5 +70,32 @@ public class OtherActivity extends AppCompatActivity {
     for (int i = 0; i < size; i++) {
       LLogger.d(Thread.currentThread(), i);
     }
+  }
+
+  public void onClickCheckEffectThread(View view) {
+    int size = 20;
+    Thread[] threads = new Thread[size];
+    for (int i = 0; i < size; i++) {
+      final int finalI = i;
+      threads[i] = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          LLogger.d(finalI);
+        }
+      });
+    }
+
+    LLogger.d("主线程");
+    for (Thread thread : threads) {
+      thread.start();
+    }
+
+    try {
+      File logZipFile = LLogger.logZipFile("log");
+      LLogger.d(logZipFile);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
   }
 }
