@@ -13,7 +13,7 @@ public class JavaMain {
   public static void main(String[] args) throws JSONException {
 
     File logDir = new File("log");
-    LLogger.init( true,"Java", logDir);
+    LLogger.init(true, "Java", logDir);
 
     testJavaEnv();
 
@@ -26,6 +26,12 @@ public class JavaMain {
     LLogger.d("debug");
     LLogger.trace();
 
+    File logDir = new File("log");
+    doThing((Object[]) logDir.list());
+  }
+
+  private static void doThing(Object... args) {
+    LLogger.d(args.length);
   }
 
 

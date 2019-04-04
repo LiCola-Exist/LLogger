@@ -89,7 +89,8 @@ public class LoggerActivity extends AppCompatActivity {
 
   public void onClickLogInnerClass(View view) {
     MyRunnable myRunnable = new MyRunnable();
-    myRunnable.run();
+    Thread newThread = new Thread(myRunnable);
+    newThread.start();
   }
 
   public void onClickInstanceOther(View view) throws JSONException, FileNotFoundException {
