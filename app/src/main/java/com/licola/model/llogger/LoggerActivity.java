@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.licola.llogger.LLogger;
+import com.licola.llogger.LSupplier;
 import com.licola.llogger.Logger;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,38 +20,49 @@ public class LoggerActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_logger);
-
   }
 
   public void onClickLogV(View view) {
     LLogger.v();
     LLogger.v("verbose");
     LLogger.v("verbose", view);
+    LLogger.v(new LSupplier<String>() {
+      @Override
+      public String get() {
+        return "懒求值verbose";
+      }
+    });
+    LLogger.v(() -> "懒求值verbose Java8写法");
   }
 
   public void onClickLogD(View view) {
     LLogger.d();
     LLogger.d("debug");
     LLogger.d("debug", view);
+    LLogger.d(() -> "懒求值debug");
   }
 
   public void onClickLogI(View view) {
     LLogger.i();
     LLogger.i("info");
     LLogger.i("info", view);
+    LLogger.i(() -> "懒求值info");
   }
 
   public void onClickLogW(View view) {
     LLogger.w();
     LLogger.w("warn");
     LLogger.w("warn", view);
+    LLogger.i(() -> "懒求值warn");
+
   }
 
   public void onClickLogE(View view) {
     LLogger.e();
     LLogger.e("error");
+    LLogger.e(() -> "懒求值error");
     try {
-      throw new RuntimeException("故意抛出的异常");
+      throw new RuntimeException("故意抛出的异常打印线程栈信息");
     } catch (Throwable throwable) {
       LLogger.e(throwable);
     }
@@ -60,6 +72,7 @@ public class LoggerActivity extends AppCompatActivity {
     LLogger.a();
     LLogger.a("assert");
     LLogger.a("assert", view);
+    LLogger.a(() -> "懒求值assert");
   }
 
   public void onClickLogJson(View view) {
@@ -71,6 +84,7 @@ public class LoggerActivity extends AppCompatActivity {
       e.printStackTrace();
     }
     LLogger.json(jsonObject);
+    LLogger.jsonObject(() -> jsonObject);
 
     JSONArray jsonArray = new JSONArray();
     try {
@@ -80,6 +94,7 @@ public class LoggerActivity extends AppCompatActivity {
       e.printStackTrace();
     }
     LLogger.json(jsonArray);
+    LLogger.jsonArray(() -> jsonArray);
 
   }
 
@@ -91,8 +106,7 @@ public class LoggerActivity extends AppCompatActivity {
 
   public void onClickLogInnerClass(View view) {
     MyRunnable myRunnable = new MyRunnable();
-    Thread newThread = new Thread(myRunnable);
-    newThread.start();
+    new Thread(myRunnable).start();
   }
 
   /**
@@ -148,6 +162,8 @@ public class LoggerActivity extends AppCompatActivity {
           LLogger.d("inner-inner class");
         }
       });
+
+      runOnUiThread(() -> LLogger.d("inner-inner Lambda"));
     }
   }
 }

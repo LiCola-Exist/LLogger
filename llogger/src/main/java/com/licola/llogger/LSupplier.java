@@ -4,7 +4,7 @@ package com.licola.llogger;
  * @author LiCola
  * @date 2019-06-05
  */
-public interface LSupplier {
+public interface LSupplier<T> {
 
-  String get();
+  T get();
 }

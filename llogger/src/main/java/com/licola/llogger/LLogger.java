@@ -102,6 +102,12 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void v(LSupplier<String> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printLog(V, supplier.get());
+    }
+  }
+
   public static void v(Object... objects) {
     if (LOGGER != null) {
       LOGGER.printLog(V, objects);
@@ -117,6 +123,12 @@ public final class LLogger implements Logger {
   public static void d(Object msg) {
     if (LOGGER != null) {
       LOGGER.printLog(D, msg);
+    }
+  }
+
+  public static void d(LSupplier<String> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printLog(D, supplier.get());
     }
   }
 
@@ -138,6 +150,12 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void i(LSupplier<String> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printLog(I, supplier.get());
+    }
+  }
+
   public static void i(Object... objects) {
     if (LOGGER != null) {
       LOGGER.printLog(I, objects);
@@ -156,6 +174,12 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void w(LSupplier<String> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printLog(W, supplier.get());
+    }
+  }
+
   public static void w(Object... objects) {
     if (LOGGER != null) {
       LOGGER.printLog(W, objects);
@@ -171,6 +195,12 @@ public final class LLogger implements Logger {
   public static void e(Object msg) {
     if (LOGGER != null) {
       LOGGER.printLog(E, msg);
+    }
+  }
+
+  public static void e(LSupplier<String> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printLog(E, supplier.get());
     }
   }
 
@@ -198,6 +228,12 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void a(LSupplier<String> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printLog(A, supplier.get());
+    }
+  }
+
   public static void a(Object... objects) {
     if (LOGGER != null) {
       LOGGER.printLog(A, objects);
@@ -222,9 +258,21 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void jsonObject(LSupplier<JSONObject> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printJson(supplier.get());
+    }
+  }
+
   public static void json(JSONArray jsonArray) {
     if (LOGGER != null) {
       LOGGER.printJson(jsonArray);
+    }
+  }
+
+  public static void jsonArray(LSupplier<JSONArray> supplier) {
+    if (LOGGER != null) {
+      LOGGER.printJson(supplier.get());
     }
   }
 

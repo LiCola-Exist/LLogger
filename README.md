@@ -13,12 +13,13 @@
  - 支持代码追踪调试，trace()方法打印方法调用栈（看源码效率工具）
  - 支持超长4000+字符串长度打印
  - ~~支持UI主线程耗时任务检测(Android环境)，打印耗时任务相关代码行~~
- - 支持运行环境中多个LLogger日志实例，以外观模式简化调用（主要使用），并可以创建多个实例，以细分管理日志。
+ - 支持运行环境中多个LLogger日志实例，以外观模式简化调用（主要使用），并可以创建多个实例，以细分管理日志
+ - 支持日志内容懒求值，即按需使用避免不会输出的log内容带来的影响
 
 # 引用
 
 ```java
-  implementation "com.licola:llogger:1.4.9"
+  implementation "com.licola:llogger:1.5.0"
 ```
 
 # 更新日志
@@ -28,6 +29,7 @@
  - 1.4.6:修改部分对象使用方式，优化内存。
  - 1.4.8:加入日志对象的创建，并暴露给外部使用，以实现运行环境多个LLogger日志。
  - 1.4.9:对日志文件读写加入读写锁处理，处理多线程同时写入漏写问题。
+ - 1.5.0:优化项目结构，优化内存和锁，加入日志内容懒求值功能，即实现内容提供者功能Supplier。
 # 使用
 外观模式，静态方法，一行代码调用
 ```java
@@ -39,6 +41,17 @@
     
     List<File> logFileAll = LLogger.logList();//获取全部日志文件
     File logZipFile = LLogger.logZipFile("log.zip", 24);//获取前24小时的日志文件并打包压缩到zip包中，如果为0表示当前小时，
+    
+    LLogger.v(new LSupplier<String>() {
+          @Override
+          public String get() {
+            return "懒求值verbose";
+          }
+        });
+    LLogger.v(() -> "懒求值verbose Java8写法");
+    LLogger.jsonObject(() -> jsonObject);
+    LLogger.jsonArray(() -> jsonArray);
+    
 ```
 
 # 配置
@@ -99,6 +112,11 @@ public class MyApplication extends Application {
       
       List<File> files = lLogger.fetchLogList(2);
 ```
+# 关于懒求值
+在日常开发中日志的打印以及打印带来的效率影响是可以接受的，但是在线上环境我们需要关闭或者禁用日志打印功能。
+这里在已经提供了关闭方式，即不调起` LLogger.init()`方法，就不会初始化全局的类成员实例`LLogger.d("debug")`就不会有打印结果（关于其他的LLogger日志实例应该不创建来关闭）。
+即使关闭了日志，但是仍会有`LLogger.d("特殊情况下该内容使用有性能消耗")`,这是因为Java的参数传值方式决定的，先计算参数再进入方法块。
+所以这里就提供了懒求值日志，提供选择使用。
 
 # 关于log本地文件
 可以看到上图的```LLogger_2018-06-04_18.log```日志行，表示创建以小时为节点的log文件。
