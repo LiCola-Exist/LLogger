@@ -114,9 +114,29 @@ public class MyApplication extends Application {
 ```
 # 关于懒求值
 在日常开发中日志的打印以及打印带来的效率影响是可以接受的，但是在线上环境我们需要关闭或者禁用日志打印功能。
-这里在已经提供了关闭方式，即不调起` LLogger.init()`方法，就不会初始化全局的类成员实例`LLogger.d("debug")`就不会有打印结果（关于其他的LLogger日志实例应该不创建来关闭）。
-即使关闭了日志，但是仍会有`LLogger.d("特殊情况下该内容使用有性能消耗")`,这是因为Java的参数传值方式决定的，先计算参数再进入方法块。
+这里在已经提供了关闭方式，即不调起init相关方法，
+```java
+//  LLogger.init()
+```
+注释掉之后，就不会初始化全局的类成员实例，从而`LLogger.d("debug")`就不会有打印结果（关于其他的LLogger日志实例应该不创建实例来关闭）。
+
+即使关闭了日志，但是仍会有
+```java
+  LLogger.d("特殊情况下该内容使用有性能消耗")
+```
+
+这是因为Java的参数传值方式决定的，先计算参数再进入方法块。
 所以这里就提供了懒求值日志，提供选择使用。
+```java
+    //如果没有init，都不会调起get方法，进而避免多余的参数计算带来的性能消耗
+    LLogger.v(new LSupplier<String>() {
+          @Override
+          public String get() {
+            return "懒求值verbose";
+          }
+        });
+    LLogger.v(() -> "懒求值verbose Java8写法");
+```
 
 # 关于log本地文件
 可以看到上图的```LLogger_2018-06-04_18.log```日志行，表示创建以小时为节点的log文件。
