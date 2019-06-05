@@ -42,6 +42,9 @@ class Utils {
     }
   }
 
+  /**
+   * 把异常堆栈信息全部写入string中
+   */
   static String getStackTraceString(Throwable tr) {
     if (tr == null) {
       return "Throwable == null";

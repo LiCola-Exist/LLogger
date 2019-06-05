@@ -11,17 +11,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Log日志工具类 1:支持打印行号、方法、内部类名 2:支持在Logcat中的点击行号跳转代码 3:支持空参，单一参数，多参数打印
- * 4:支持log日志信息写入本地文件,以时间为节点，避免日志过长，且支持打包log文件 5:支持Java环境log打印，如在android的test本地单元测试中打印
- * 6:支持JSON字符串、JSON对象、JSON数组友好格式化打印 7:支持超长4000+字符串长度打印
+ * Log日志工具类
  *
  * 基于：https://github.com/ZhaoKaiQiang/KLog项目改造
  */
-public final class LLogger {
+public final class LLogger implements Logger {
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String DEFAULT_MESSAGE = "execute";
+  private static final Object[] DEFAULT_MESSAGES = new Object[]{DEFAULT_MESSAGE};
   private static final String ARGUMENTS = "argument";
   private static final String NULL = "null";
 
@@ -31,55 +30,45 @@ public final class LLogger {
   static final String DEFAULT_TAG = "LLogger";
   private static final boolean DEFAULT_SHOW_LINE = true;
 
-  private static final long FETCH_ALL_LOG = 0;
-  private static final long HOUR_TIME = 60 * 60 * 1000;
-
   private static final int JSON_INDENT = 4;
 
-  public static final int V = 0x1;
-  public static final int D = 0x2;
-  public static final int I = 0x3;
-  public static final int W = 0x4;
-  public static final int E = 0x5;
-  public static final int A = 0x6;
-
-  private static LLogger LLOGGER;
+  private static Logger LOGGER;
 
   private final boolean showLine;
-  private final Logger logger;
-  private final FileLog fileLog;
+  private final PlatformLogger platformLogger;
+  private final FileLogger fileLogger;
 
-  public LLogger(boolean showLine, Logger logger, FileLog fileLog) {
+  LLogger(boolean showLine, PlatformLogger platformLogger, FileLogger fileLogger) {
     this.showLine = showLine;
-    this.logger = logger;
-    this.fileLog = fileLog;
+    this.platformLogger = platformLogger;
+    this.fileLogger = fileLogger;
   }
 
-  public static LLogger create() {
-    return new LLogger(DEFAULT_SHOW_LINE, Logger.findPlatform(DEFAULT_TAG), null);
+  public static Logger create() {
+    return new LLogger(DEFAULT_SHOW_LINE, PlatformLogger.findPlatform(DEFAULT_TAG), null);
   }
 
-  public static LLogger create(boolean showLine) {
-    return new LLogger(showLine, Logger.findPlatform(DEFAULT_TAG), null);
+  public static Logger create(boolean showLine) {
+    return new LLogger(showLine, PlatformLogger.findPlatform(DEFAULT_TAG), null);
   }
 
-  public static LLogger create(boolean showLine, String tag) {
-    return new LLogger(showLine, Logger.findPlatform(tag), null);
+  public static Logger create(boolean showLine, String tag) {
+    return new LLogger(showLine, PlatformLogger.findPlatform(tag), null);
   }
 
-  public static LLogger create(boolean showLine, String tag, File logFileDir) {
-    return new LLogger(showLine, Logger.findPlatform(tag), new FileLog(tag, logFileDir));
+  public static Logger create(boolean showLine, String tag, File logFileDir) {
+    return new LLogger(showLine, PlatformLogger.findPlatform(tag), new FileLogger(tag, logFileDir));
   }
 
   public static void init() {
-    LLOGGER = create();
+    LOGGER = create();
   }
 
   /**
    * 配置方法
    */
   public static void init(boolean showLine) {
-    LLOGGER = create(showLine);
+    LOGGER = create(showLine);
   }
 
   /**
@@ -88,183 +77,174 @@ public final class LLogger {
    * @param tag log的tag显示
    */
   public static void init(boolean showLine, String tag) {
-    LLOGGER = create(showLine, tag);
+    LOGGER = create(showLine, tag);
   }
 
   /**
-   * 配置方法
+   * 配置方法，会在当前类的加载日志对象，如果不显示调起就不会输出日志
    *
    * @param tag log的tag显示
    * @param logFileDir log
    */
   public static void init(boolean showLine, String tag, File logFileDir) {
-    LLOGGER = create(showLine, tag, logFileDir);
+    LOGGER = create(showLine, tag, logFileDir);
   }
 
   public static void v() {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(V);
+    if (LOGGER != null) {
+      LOGGER.printLog(V);
     }
   }
 
   public static void v(Object msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(V, msg);
+    if (LOGGER != null) {
+      LOGGER.printLog(V, msg);
     }
   }
 
   public static void v(Object... objects) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(V, objects);
+    if (LOGGER != null) {
+      LOGGER.printLog(V, objects);
     }
   }
 
   public static void d() {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(D);
+    if (LOGGER != null) {
+      LOGGER.printLog(D);
     }
   }
 
   public static void d(Object msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(D, msg);
+    if (LOGGER != null) {
+      LOGGER.printLog(D, msg);
     }
   }
 
   public static void d(Object... objects) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(D, objects);
+    if (LOGGER != null) {
+      LOGGER.printLog(D, objects);
     }
   }
 
   public static void i() {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(I);
+    if (LOGGER != null) {
+      LOGGER.printLog(I);
     }
   }
 
   public static void i(Object msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(I, msg);
+    if (LOGGER != null) {
+      LOGGER.printLog(I, msg);
     }
   }
 
   public static void i(Object... objects) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(I, objects);
+    if (LOGGER != null) {
+      LOGGER.printLog(I, objects);
     }
   }
 
   public static void w() {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(W);
+    if (LOGGER != null) {
+      LOGGER.printLog(W);
     }
   }
 
   public static void w(Object msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(W, msg);
+    if (LOGGER != null) {
+      LOGGER.printLog(W, msg);
     }
   }
 
   public static void w(Object... objects) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(W, objects);
+    if (LOGGER != null) {
+      LOGGER.printLog(W, objects);
     }
   }
 
   public static void e() {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(E);
+    if (LOGGER != null) {
+      LOGGER.printLog(E);
     }
   }
 
   public static void e(Object msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(E, msg);
+    if (LOGGER != null) {
+      LOGGER.printLog(E, msg);
     }
   }
 
   public static void e(Throwable throwable) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(E, Utils.getStackTraceString(throwable));
+    if (LOGGER != null) {
+      LOGGER.printLog(E, throwable);
     }
   }
 
   public static void e(Object... objects) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(E, objects);
+    if (LOGGER != null) {
+      LOGGER.printLog(E, objects);
     }
   }
 
   public static void a() {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(A);
+    if (LOGGER != null) {
+      LOGGER.printLog(A);
     }
   }
 
   public static void a(Object msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(A, msg);
+    if (LOGGER != null) {
+      LOGGER.printLog(A, msg);
     }
   }
 
   public static void a(Object... objects) {
-    if (LLOGGER != null) {
-      LLOGGER.printLog(A, objects);
+    if (LOGGER != null) {
+      LOGGER.printLog(A, objects);
     }
   }
 
-  /**
-   * @see #trace(String)
-   */
   public static void trace() {
-    if (LLOGGER != null) {
-      LLOGGER.printTrace();
+    if (LOGGER != null) {
+      LOGGER.printTrace();
     }
   }
 
-  /**
-   * 打印代码调用栈，在引入的混淆导致无法正确获取代码信息
-   */
   public static void trace(String msg) {
-    if (LLOGGER != null) {
-      LLOGGER.printTrace(msg);
+    if (LOGGER != null) {
+      LOGGER.printTrace(msg);
     }
   }
 
   public static void json(JSONObject jsonObject) {
-    if (LLOGGER != null) {
-      LLOGGER.printJson(jsonObject);
+    if (LOGGER != null) {
+      LOGGER.printJson(jsonObject);
     }
   }
 
   public static void json(JSONArray jsonArray) {
-    if (LLOGGER != null) {
-      LLOGGER.printJson(jsonArray);
+    if (LOGGER != null) {
+      LOGGER.printJson(jsonArray);
     }
   }
 
-  public void printTrace() {
-    String headString = wrapperContent();
-    printLog(D, headString + Utils.getStackTrace());
-  }
-
-  public void printTrace(String msg) {
-    String headString = wrapperContent();
-    printLog(D, headString + msg + Utils.getStackTrace());
-  }
-
+  @Override
   public void printLog(int type) {
-    printLog(type, new Object[]{DEFAULT_MESSAGE});
+    printLog(type, DEFAULT_MESSAGES);
   }
 
+  @Override
   public void printLog(int type, Object object) {
     printLog(type, new Object[]{object});
   }
 
-  public void printLog(int type, Object... objects) {
+  @Override
+  public void printLog(int type, Throwable throwable) {
+    printLog(type, Utils.getStackTraceString(throwable));
+  }
 
+  @Override
+  public void printLog(int type, Object... objects) {
     String message;
 
     if (showLine) {
@@ -274,26 +254,22 @@ public final class LLogger {
       message = (objects == null) ? NULL : getObjectsString(objects);
     }
 
-    logger.log(type, message);
+    platformLogger.log(type, message);
 
-    if (fileLog != null) {
+    if (fileLogger != null) {
       try {
-        String fileLogPath = fileLog.printLog(type, message);
+        String fileLogPath = fileLogger.printLog(type, message);
         if (fileLogPath != null) {
-          logger.log(I, "create log file " + fileLogPath);
+          platformLogger.log(I, "create log file " + fileLogPath);
         }
       } catch (IOException e) {
-        logger.log(E, e.toString());
-        Throwable cause = e.getCause();
-        if (cause!=null){
-          logger.log(E, cause.toString());
-        }
+        platformLogger.log(E, Utils.getStackTraceString(e));
       }
     }
   }
 
+  @Override
   public void printJson(JSONObject object) {
-
     int type = I;
     String msg;
     try {
@@ -306,8 +282,8 @@ public final class LLogger {
     printLog(type, "JSONObject" + LINE_SEPARATOR + msg);
   }
 
+  @Override
   public void printJson(JSONArray object) {
-
     int type = I;
     String msg;
     try {
@@ -320,139 +296,147 @@ public final class LLogger {
     printLog(type, "JSONArray" + LINE_SEPARATOR + msg);
   }
 
+  @Override
+  public void printTrace() {
+    String headString = wrapperContent();
+    printLog(D, headString + Utils.getStackTrace());
+  }
+
+  @Override
+  public void printTrace(String msg) {
+    String headString = wrapperContent();
+    printLog(D, headString + msg + Utils.getStackTrace());
+  }
 
   /**
-   * 获取日志目录下的日志文件，空参没有限定时间，即所有的log日志文件
-   *
-   * @return 符合限定时间的文件列表
-   * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
+   * @see #fetchLogList()
    */
   public static List<File> logList() throws FileNotFoundException {
-
-    if (LLOGGER != null) {
-      return LLOGGER.fetchLogList();
+    if (LOGGER != null) {
+      return LOGGER.fetchLogList();
     }
 
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 
   /**
-   * 获取当前小时的前lastHour小时的log文件列表
-   *
-   * @param lastHour lastHour 当前时间的前几个小时，如果为0表示当前小时
-   * @return 符合限定时间的文件列表
-   * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
+   * @see #fetchLogList(int)
    */
   public static List<File> logList(int lastHour) throws FileNotFoundException {
-
-    if (LLOGGER != null) {
-      return LLOGGER.fetchLogList(lastHour);
+    if (LOGGER != null) {
+      return LOGGER.fetchLogList(lastHour);
     }
 
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 
   /**
-   * 获取限定时间节点的log文件列表
-   *
-   * @param beginTime 限定的日志开始时间 即[beginTime(开始时间)~当前时间]，如果为0表示没有时间限制，返回所有的log文件列表
-   * @return 符合限定时间的文件列表
-   * @throws FileNotFoundException 没有找到符合限定时间节点的log文件列表
+   * @see #fetchLogList(long)
    */
   public static List<File> logList(long beginTime) throws FileNotFoundException {
-
-    if (LLOGGER != null) {
-      return LLOGGER.fetchLogList(beginTime);
+    if (LOGGER != null) {
+      return LOGGER.fetchLogList(beginTime);
     }
 
-    return Collections.EMPTY_LIST;
-  }
-
-  public List<File> fetchLogList() throws FileNotFoundException {
-
-    if (fileLog == null) {
-      throw new FileNotFoundException("没有配置日志目录");
-    }
-
-    return fileLog.fetchLogFiles(FETCH_ALL_LOG);
-  }
-
-  public List<File> fetchLogList(int lastHour) throws FileNotFoundException {
-
-    if (fileLog == null) {
-      throw new FileNotFoundException("没有配置日志目录");
-    }
-
-    long curTime = System.currentTimeMillis();
-    long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
-
-    return fileLog.fetchLogFiles(beginTime);
-  }
-
-  public List<File> fetchLogList(long beginTime) throws FileNotFoundException {
-
-    if (fileLog == null) {
-      throw new FileNotFoundException("没有配置日志目录");
-    }
-
-    return fileLog.fetchLogFiles(beginTime);
+    return Collections.emptyList();
   }
 
   /**
-   * 压缩打包没有时间限制的log文件，即打包所有log文件
-   *
-   * @param zipFileName 压缩包文件名
-   * @throws IOException 压缩文件操作异常
-   * @see com.licola.llogger.LLogger#logList()
-   * @return 如果没有配置 会返回null
+   * @see #makeLogZipFile(String)
    */
   public static File logZipFile(String zipFileName)
       throws IOException {
-    if (LLOGGER != null) {
-      return LLOGGER.makeLogZipFile(zipFileName, FETCH_ALL_LOG);
+    if (LOGGER != null) {
+      return LOGGER.makeLogZipFile(zipFileName);
     }
     return null;
   }
 
 
   /**
-   * 压缩打包当前小时的前lastHour小时的log文件
-   *
-   * @param zipFileName 压缩包文件名
-   * @param lastHour 当前时间的前几个小时，如果为0表示当前小时
-   * @return 压缩的log文件zip
-   * @throws IOException 压缩文件操作异常
-   * @see com.licola.llogger.LLogger#logList(int)
+   * @see #makeLogZipFile(String, int)
    */
   public static File logZipFile(String zipFileName, int lastHour)
       throws IOException {
-
-    if (LLOGGER != null) {
-      long curTime = System.currentTimeMillis();
-      long beginTime = curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
-      return LLOGGER.makeLogZipFile(zipFileName, beginTime);
+    if (LOGGER != null) {
+      return LOGGER.makeLogZipFile(zipFileName, lastHour);
     }
 
     return null;
   }
 
   /**
-   * 压缩打包限定时间节点的log文件
-   *
-   * @param zipFileName 压缩包文件名
-   * @param beginTime 限定的日志开始时间 即[beginTime(开始时间)~当前时间]，如果为0表示没有时间限制，打包所有的log文件
-   * @return 压缩的log文件zip
-   * @throws IOException 压缩文件操作异常
-   * @see LLogger#logList(int)
+   * @see #makeLogZipFile(String, long)
    */
-  public File makeLogZipFile(String zipFileName, long beginTime)
+  public static File logZipFile(String zipFileName, long beginTime)
       throws IOException {
-
-    if (fileLog == null) {
-      throw new FileNotFoundException("没有配置日志目录");
+    if (LOGGER != null) {
+      return LOGGER.makeLogZipFile(zipFileName, beginTime);
     }
 
-    return fileLog.makeZipFile(zipFileName, beginTime);
+    return null;
+  }
+
+
+  @Override
+  public List<File> fetchLogList() throws FileNotFoundException {
+    if (fileLogger != null) {
+      return fileLogger.fetchLogFiles();
+    }
+
+    return Collections.emptyList();
+  }
+
+
+  @Override
+  public List<File> fetchLogList(int lastHour) throws FileNotFoundException {
+    if (fileLogger != null) {
+      return fileLogger.fetchLogFiles(lastHour);
+    }
+
+    return Collections.emptyList();
+  }
+
+
+  @Override
+  public List<File> fetchLogList(long beginTime) throws FileNotFoundException {
+    if (fileLogger != null) {
+      return fileLogger.fetchLogFiles(beginTime);
+    }
+    return Collections.emptyList();
+  }
+
+
+  @Override
+  public File makeLogZipFile(String zipFileName) throws IOException {
+
+    if (fileLogger != null) {
+      return fileLogger.makeZipFile(zipFileName);
+    }
+
+    return null;
+  }
+
+
+  @Override
+  public File makeLogZipFile(String zipFileName, int lastHour) throws IOException {
+
+    if (fileLogger != null) {
+      return fileLogger.makeZipFile(zipFileName, lastHour);
+    }
+
+    return null;
+  }
+
+
+  @Override
+  public File makeLogZipFile(String zipFileName, long beginTime) throws IOException {
+
+    if (fileLogger != null) {
+      return fileLogger.makeZipFile(zipFileName, beginTime);
+    }
+
+    return null;
   }
 
 
@@ -523,22 +507,22 @@ public final class LLogger {
   static String mapperType(int type) {
     String typeStr;
     switch (type) {
-      case LLogger.V:
+      case V:
         typeStr = "Verbose";
         break;
-      case LLogger.D:
+      case D:
         typeStr = "Debug";
         break;
-      case LLogger.I:
+      case I:
         typeStr = "Info";
         break;
-      case LLogger.W:
+      case W:
         typeStr = "Warn";
         break;
-      case LLogger.E:
+      case E:
         typeStr = "Error";
         break;
-      case LLogger.A:
+      case A:
         typeStr = "Assert";
         break;
       default:

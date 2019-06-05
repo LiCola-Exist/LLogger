@@ -23,7 +23,11 @@ import java.util.zip.ZipOutputStream;
 /**
  * Created by LiCola on 2018/5/14.
  */
-class FileLog {
+class FileLogger {
+
+  private static final long HOUR_TIME = 60 * 60 * 1000;
+  private static final long UNLIMITED_TIME_LOG = 0;
+
 
   private static final char SPACING = ' ';
   private static final String FILE_FORMAT = ".log";
@@ -51,14 +55,16 @@ class FileLog {
   private final String logTag;
   private final File logFileDir;
 
-  FileLog(String logTag, File logFileDir) {
-    checkDirFile(logFileDir);
-    this.logFileDir = logFileDir;
+  FileLogger(String logTag, File logFileDir) {
+    this.logFileDir = makeSureLogFileDir(logFileDir);
     this.logTag = logTag;
     this.readWriteLock = new ReentrantReadWriteLock(false);
   }
 
   String printLog(int type, String msg) throws IOException {
+
+    checkDirFile(logFileDir);
+
     long timeMillis = System.currentTimeMillis();
 
     String timeFileInfo = FORMAT_FILE.get().format(timeMillis);
@@ -66,11 +72,12 @@ class FileLog {
 
     String timeInfo = FORMAT_INFO.get().format(timeMillis);
 
-    File logFile = new File(logFileDir, logFileName);
-
     //写锁 获取锁
     Lock writeLock = readWriteLock.writeLock();
     writeLock.lock();
+
+    File logFile = new File(logFileDir, logFileName);
+
     boolean createFileFlag;
     try {
       //检查目标日志文件
@@ -91,6 +98,74 @@ class FileLog {
     }
   }
 
+  List<File> fetchLogFiles()
+      throws FileNotFoundException {
+    return fetchLogFiles(UNLIMITED_TIME_LOG);
+  }
+
+  List<File> fetchLogFiles(int lastHour)
+      throws FileNotFoundException {
+    return fetchLogFiles(getBeginTime(lastHour));
+  }
+
+  List<File> fetchLogFiles(long beginTime)
+      throws FileNotFoundException {
+
+    checkDirFile(logFileDir);
+
+    //读锁 获取锁
+    Lock readLock = readWriteLock.readLock();
+    readLock.lock();
+
+    File[] files = logFileDir.listFiles();
+
+    if (files == null || files.length == 0) {
+      //释放锁
+      readLock.unlock();
+      throw new FileNotFoundException(logFileDir.getAbsolutePath() + " is empty dir");
+    }
+
+    ArrayList<File> logFiles = new ArrayList<>();
+    for (File file : files) {
+      String fileName = file.getName();
+      if (!fileName.startsWith(logTag) || !fileName.endsWith(FILE_FORMAT)) {
+        //去除非目标日志 即非固定前缀和固定后缀的文件名
+        continue;
+      }
+
+      if (UNLIMITED_TIME_LOG >= beginTime) {
+        //开始时间为0 表示没有限制条件
+        logFiles.add(file);
+      } else {
+        String timeFileInfo = fileName
+            .substring(logTag.length() + DEFAULT_FILE_PREFIX.length(),
+                fileName.length() - FILE_FORMAT.length());
+        long fileTime = getFileTime(timeFileInfo);
+        if (fileTime >= beginTime) {
+          //log文件保存时间 >= 限定开始时间 即在限定时间之后的日志
+          logFiles.add(file);
+        }
+      }
+    }
+
+    //释放锁
+    readLock.unlock();
+
+    if (logFiles.isEmpty()) {
+      throw new FileNotFoundException("No files meet the conditions of time");
+    } else {
+      return logFiles;
+    }
+  }
+
+  File makeZipFile(String zipFileName) throws IOException {
+    return makeZipFile(zipFileName, UNLIMITED_TIME_LOG);
+  }
+
+  File makeZipFile(String zipFileName, int lastHour) throws IOException {
+    return makeZipFile(zipFileName, getBeginTime(lastHour));
+  }
+
   File makeZipFile(String zipFileName, long beginTime)
       throws IOException {
 
@@ -102,16 +177,23 @@ class FileLog {
       zipFile = new File(logFileDir, zipFileName + ZIP_SUFFIX);
     }
 
+    if (zipFile.exists()) {
+      //防止已经存在的文件影响
+      zipFile.delete();
+    }
+
     //读锁 获取锁
     Lock readLock = readWriteLock.readLock();
     readLock.lock();
 
     //重入
-    List<File> files = fetchLogFiles(beginTime);
-
-    if (zipFile.exists()) {
-      //防止已经存在的文件影响
-      zipFile.delete();
+    List<File> files;
+    try {
+      files = fetchLogFiles(beginTime);
+    } catch (FileNotFoundException e) {
+      //找不到合适的目标日志文件 释放锁并抛出异常
+      readLock.unlock();
+      throw e;
     }
 
     FileOutputStream zipFileOutputStream = new FileOutputStream(zipFile);
@@ -138,51 +220,9 @@ class FileLog {
     return zipFile;
   }
 
-  List<File> fetchLogFiles(long beginTime)
-      throws FileNotFoundException {
-
-    //读锁 获取锁
-    Lock readLock = readWriteLock.readLock();
-    readLock.lock();
-
-    File[] files = logFileDir.listFiles();
-
-    if (files == null || files.length == 0) {
-      //释放锁
-      readLock.unlock();
-      throw new FileNotFoundException(logFileDir.getAbsolutePath() + " is empty dir");
-    }
-
-    ArrayList<File> logFiles = new ArrayList<>();
-    for (File file : files) {
-      String fileName = file.getName();
-      if (!fileName.startsWith(logTag) || !fileName.endsWith(FILE_FORMAT)) {
-        //去除非目标日志 即非固定前缀和固定后缀的文件名
-        continue;
-      }
-
-      if (beginTime == 0) {
-        //开始时间为0 表示没有限制条件
-        logFiles.add(file);
-      } else {
-        String timeFileInfo = fileName
-            .substring(logTag.length() + DEFAULT_FILE_PREFIX.length(),
-                fileName.length() - FILE_FORMAT.length());
-        long fileTime = getFileTime(timeFileInfo);
-        if (fileTime >= beginTime) {
-          //log文件保存时间 >= 限定开始时间 即在限定时间之后的日志
-          logFiles.add(file);
-        }
-      }
-    }
-
-    //释放锁
-    readLock.unlock();
-    if (logFiles.isEmpty()) {
-      throw new FileNotFoundException("No files meet the conditions of time");
-    } else {
-      return logFiles;
-    }
+  private long getBeginTime(int lastHour) {
+    long curTime = System.currentTimeMillis();
+    return curTime / HOUR_TIME * HOUR_TIME - (HOUR_TIME * lastHour);
   }
 
   private static long getFileTime(String timeFileInfo) {
@@ -217,7 +257,17 @@ class FileLog {
     mappedByteBufferWrite(logFile, output);
   }
 
-  private static void checkDirFile(File logFileDir) {
+  private static void checkDirFile(File logFileDir) throws FileNotFoundException {
+    if (logFileDir == null) {
+      throw new FileNotFoundException("logFileDir == null");
+    }
+
+    if (logFileDir.exists() && !logFileDir.isDirectory()) {
+      throw new FileNotFoundException("logFileDir must be directory");
+    }
+  }
+
+  private static File makeSureLogFileDir(File logFileDir) {
     if (logFileDir == null) {
       throw new NullPointerException("logFileDir == null");
     }
@@ -230,6 +280,8 @@ class FileLog {
     if (!mkdirs && !logFileDir.exists()) {
       throw new RuntimeException("logFileDir mkdirs failed:" + logFileDir.getAbsolutePath());
     }
+
+    return logFileDir;
   }
 
   private static boolean createFile(File file) throws IOException {

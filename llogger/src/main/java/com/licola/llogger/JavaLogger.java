@@ -7,7 +7,7 @@ import java.util.Locale;
 /**
  * Created by LiCola on 2018/5/21. Java环境下的log日志打印工具类
  */
-class JavaLogger extends Logger {
+class JavaLogger extends PlatformLogger {
 
   private static final ThreadLocal<SimpleDateFormat> FORMAT_INFO = new ThreadLocal<SimpleDateFormat>() {
     @Override
@@ -16,7 +16,7 @@ class JavaLogger extends Logger {
     }
   };
 
-  public JavaLogger(String logTag) {
+  JavaLogger(String logTag) {
     super(logTag);
   }
 
@@ -24,7 +24,8 @@ class JavaLogger extends Logger {
   public void log(int type, String tag, String msg) {
     String timePrefix = FORMAT_INFO.get().format(new Date(System.currentTimeMillis()));
     String threadName = Thread.currentThread().getName();
-    String out = timePrefix + " " + threadName + " " + LLogger.mapperType(type) + "/" + tag + ": " + msg;
+    String out =
+        timePrefix + " " + threadName + " " + LLogger.mapperType(type) + "/" + tag + ": " + msg;
     System.out.println(out);
   }
 
