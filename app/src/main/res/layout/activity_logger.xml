@@ -47,6 +47,11 @@
     <Button
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:onClick="onClickLogMoreType"
+      android:text="log-more-type" />
+    <Button
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
       android:onClick="onClickLogTrace"
       android:text="log-trace" />
     <Button

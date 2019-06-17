@@ -44,6 +44,18 @@ public interface Logger {
   void printLog(int type, Throwable throwable);
 
   /**
+   * @param type 参见V/D/I/W/E/A各种日志类型
+   * @param jsonObject 会格式化打印json
+   */
+  void printLog(int type, JSONObject jsonObject);
+
+  /**
+   * @param type 参见V/D/I/W/E/A各种日志类型
+   * @param jsonArray 会格式化打印json
+   */
+  void printLog(int type, JSONArray jsonArray);
+
+  /**
    * 友好格式化的JSONObject，即带缩进的打印内容
    */
   void printJson(JSONObject object);

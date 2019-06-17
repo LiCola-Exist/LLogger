@@ -4,6 +4,9 @@ package com.licola.llogger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.json.JSONArray;
@@ -31,6 +34,9 @@ public final class LLogger implements Logger {
   private static final boolean DEFAULT_SHOW_LINE = true;
 
   private static final int JSON_INDENT = 4;
+  private static final String TRACE_CLASS_END = "at com.licola.llogger";
+  private static final String TRACE_CLASS_LOGGER_FLAG = "LLogger.java";
+
 
   private static Logger LOGGER;
 
@@ -102,6 +108,18 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void v(JSONObject msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(V, msg);
+    }
+  }
+
+  public static void v(JSONArray msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(V, msg);
+    }
+  }
+
   public static void v(LSupplier<String> supplier) {
     if (LOGGER != null) {
       LOGGER.printLog(V, supplier.get());
@@ -126,6 +144,18 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void d(JSONObject msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(D, msg);
+    }
+  }
+
+  public static void d(JSONArray msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(D, msg);
+    }
+  }
+
   public static void d(LSupplier<String> supplier) {
     if (LOGGER != null) {
       LOGGER.printLog(D, supplier.get());
@@ -138,6 +168,12 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void d(Throwable throwable) {
+    if (LOGGER != null) {
+      LOGGER.printLog(D, throwable);
+    }
+  }
+
   public static void i() {
     if (LOGGER != null) {
       LOGGER.printLog(I);
@@ -145,6 +181,18 @@ public final class LLogger implements Logger {
   }
 
   public static void i(Object msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(I, msg);
+    }
+  }
+
+  public static void i(JSONObject msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(I, msg);
+    }
+  }
+
+  public static void i(JSONArray msg) {
     if (LOGGER != null) {
       LOGGER.printLog(I, msg);
     }
@@ -174,6 +222,18 @@ public final class LLogger implements Logger {
     }
   }
 
+  public static void w(JSONObject msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(W, msg);
+    }
+  }
+
+  public static void w(JSONArray msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(W, msg);
+    }
+  }
+
   public static void w(LSupplier<String> supplier) {
     if (LOGGER != null) {
       LOGGER.printLog(W, supplier.get());
@@ -193,6 +253,18 @@ public final class LLogger implements Logger {
   }
 
   public static void e(Object msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(E, msg);
+    }
+  }
+
+  public static void e(JSONObject msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(E, msg);
+    }
+  }
+
+  public static void e(JSONArray msg) {
     if (LOGGER != null) {
       LOGGER.printLog(E, msg);
     }
@@ -223,6 +295,18 @@ public final class LLogger implements Logger {
   }
 
   public static void a(Object msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(A, msg);
+    }
+  }
+
+  public static void a(JSONObject msg) {
+    if (LOGGER != null) {
+      LOGGER.printLog(A, msg);
+    }
+  }
+
+  public static void a(JSONArray msg) {
     if (LOGGER != null) {
       LOGGER.printLog(A, msg);
     }
@@ -288,7 +372,33 @@ public final class LLogger implements Logger {
 
   @Override
   public void printLog(int type, Throwable throwable) {
-    printLog(type, Utils.getStackTraceString(throwable));
+    printLog(type, getStackTraceString(throwable));
+  }
+
+  @Override
+  public void printLog(int type, JSONObject jsonObject) {
+    String msg;
+    try {
+      msg = jsonObject.toString(JSON_INDENT);
+    } catch (JSONException e) {
+      type = E;
+      msg = getStackTraceString(e);
+    }
+
+    printLog(type, "JSONObject" + LINE_SEPARATOR + msg);
+  }
+
+  @Override
+  public void printLog(int type, JSONArray jsonArray) {
+    String msg;
+    try {
+      msg = jsonArray.toString(JSON_INDENT);
+    } catch (JSONException e) {
+      type = E;
+      msg = getStackTraceString(e);
+    }
+
+    printLog(type, "JSONArray" + LINE_SEPARATOR + msg);
   }
 
   @Override
@@ -311,49 +421,31 @@ public final class LLogger implements Logger {
           platformLogger.log(I, "create log file " + fileLogPath);
         }
       } catch (IOException e) {
-        platformLogger.log(E, Utils.getStackTraceString(e));
+        platformLogger.log(E, getStackTraceString(e));
       }
     }
   }
 
   @Override
   public void printJson(JSONObject object) {
-    int type = I;
-    String msg;
-    try {
-      msg = object.toString(JSON_INDENT);
-    } catch (JSONException e) {
-      type = E;
-      msg = Utils.getStackTraceString(e);
-    }
-
-    printLog(type, "JSONObject" + LINE_SEPARATOR + msg);
+    printLog(I, object);
   }
 
   @Override
   public void printJson(JSONArray object) {
-    int type = I;
-    String msg;
-    try {
-      msg = object.toString(JSON_INDENT);
-    } catch (JSONException e) {
-      type = E;
-      msg = Utils.getStackTraceString(e);
-    }
-
-    printLog(type, "JSONArray" + LINE_SEPARATOR + msg);
+    printLog(I, object);
   }
 
   @Override
   public void printTrace() {
     String headString = wrapperContent();
-    printLog(D, headString + Utils.getStackTrace());
+    printLog(D, headString + getStackTrace());
   }
 
   @Override
   public void printTrace(String msg) {
     String headString = wrapperContent();
-    printLog(D, headString + msg + Utils.getStackTrace());
+    printLog(D, headString + msg + getStackTrace());
   }
 
   /**
@@ -492,7 +584,7 @@ public final class LLogger implements Logger {
 
     StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 
-    int stackTraceIndex = Utils.findInvokeStackIndex(stackTraceElements);
+    int stackTraceIndex = findInvokeStackIndex(stackTraceElements);
 
     StackTraceElement targetElement = stackTraceElements[stackTraceIndex];
     String classFileName = targetElement.getFileName();
@@ -539,7 +631,7 @@ public final class LLogger implements Logger {
         if (object == null) {
           builder.append(NULL);
         } else {
-          builder.append(object.toString());
+          builder.append(checkArray(object) ? getArrayString(object) : object.toString());
         }
         if (i != length - 1) {
           builder.append("\n");
@@ -548,7 +640,11 @@ public final class LLogger implements Logger {
       return builder.toString();
     } else {
       Object object = objects[0];
-      return object == null ? NULL : object.toString();
+      if (object == null) {
+        return NULL;
+      } else {
+        return checkArray(object) ? getArrayString(object) : object.toString();
+      }
     }
   }
 
@@ -577,6 +673,88 @@ public final class LLogger implements Logger {
         typeStr = "Unknown";
     }
     return typeStr;
+  }
+
+  /**
+   * 把异常堆栈信息全部写入string中
+   */
+  private static String getStackTraceString(Throwable tr) {
+    if (tr == null) {
+      return "Throwable == null";
+    }
+
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    tr.printStackTrace(pw);
+    pw.flush();
+    return sw.toString();
+  }
+
+
+  private static int findInvokeStackIndex(StackTraceElement[] stackTraceElements) {
+    //调用栈逆序 遍历
+    for (int i = stackTraceElements.length - 1; i >= 0; i--) {
+      StackTraceElement traceElement = stackTraceElements[i];
+      if (TRACE_CLASS_LOGGER_FLAG.equals(traceElement.getFileName())) {
+        return i + 1;
+      }
+    }
+    return 0;
+  }
+
+  private static String getStackTrace() {
+
+    Throwable throwable = new Throwable();
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    throwable.printStackTrace(printWriter);
+    printWriter.flush();
+    String message = stringWriter.toString();
+
+    String[] traces = message.split("\\n\\t");
+    StringBuilder builder = new StringBuilder();
+    builder.append("\n");
+    for (String trace : traces) {
+      if (trace.contains(TRACE_CLASS_END)) {//跳过 LLogger库的代码层
+        continue;
+      }
+      builder.append("\t").append(trace).append("\n");
+    }
+
+    return builder.toString();
+
+  }
+
+
+  private static boolean checkArray(Object object) {
+    return object.getClass().isArray();
+  }
+
+  private static String getArrayString(Object object) {
+    Class<?> componentType = object.getClass().getComponentType();
+    if (componentType == null) {
+      return object.toString();
+    }
+
+    if (int.class == componentType) {
+      return Arrays.toString((int[]) object);
+    } else if (long.class == componentType) {
+      return Arrays.toString((long[]) object);
+    } else if (float.class == componentType) {
+      return Arrays.toString((float[]) object);
+    } else if (double.class == componentType) {
+      return Arrays.toString((double[]) object);
+    } else if (short.class == componentType) {
+      return Arrays.toString((short[]) object);
+    } else if (byte.class == componentType) {
+      return Arrays.toString((byte[]) object);
+    } else if (boolean.class == componentType) {
+      return Arrays.toString((boolean[]) object);
+    } else if (char.class == componentType) {
+      return Arrays.toString((char[]) object);
+    } else {
+      return Arrays.toString((Object[]) object);
+    }
   }
 
 }

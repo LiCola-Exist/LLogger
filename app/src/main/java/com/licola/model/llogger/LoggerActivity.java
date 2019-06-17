@@ -9,7 +9,14 @@ import com.licola.llogger.Logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeSet;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,7 +61,6 @@ public class LoggerActivity extends AppCompatActivity {
     LLogger.w("warn");
     LLogger.w("warn", view);
     LLogger.i(() -> "懒求值warn");
-
   }
 
   public void onClickLogE(View view) {
@@ -75,27 +81,42 @@ public class LoggerActivity extends AppCompatActivity {
     LLogger.a(() -> "懒求值assert");
   }
 
-  public void onClickLogJson(View view) {
+  public void onClickLogJson(View view) throws JSONException {
     JSONObject jsonObject = new JSONObject();
-    try {
-      jsonObject.put("key1", "value1");
-      jsonObject.put("key2", "value2");
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
+    jsonObject.put("key1", "value1");
     LLogger.json(jsonObject);
-    LLogger.jsonObject(() -> jsonObject);
+    LLogger.d(jsonObject);
 
     JSONArray jsonArray = new JSONArray();
-    try {
-      jsonArray.put(0, "index1");
-      jsonArray.put(1, "index2");
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
+    jsonArray.put(0, "index1");
     LLogger.json(jsonArray);
-    LLogger.jsonArray(() -> jsonArray);
+    LLogger.i(jsonArray);
+  }
 
+  public void onClickLogMoreType(View view) {
+
+    LLogger.d(Arrays.asList("list-1", "list-2", "list-3"));
+
+    LLogger.d(new int[]{1, 2, 3});
+    LLogger.d(new long[]{100, 200, 300});
+    LLogger.d(new boolean[]{false, true});
+    LLogger.d(new char[]{'a', 'b', 'c'});
+    LLogger.d(new String[]{"string1", "string2"});
+
+    Map<String, Integer> maps = new HashMap<>();
+    maps.put("key1", 100);
+    maps.put("key2", 200);
+    LLogger.d(maps);
+
+    Set<String> sets = new TreeSet<>();
+    sets.add("b");
+    sets.add("a");
+    LLogger.d(sets);
+
+    Queue<String> queues = new ArrayDeque<>();
+    queues.add("first");
+    queues.add("last");
+    LLogger.d(queues);
   }
 
   public void onClickLogTrace(View view) {
@@ -116,7 +137,6 @@ public class LoggerActivity extends AppCompatActivity {
     Logger logger = LLogger.create(false, "Other", new File(getCacheDir(), "other"));
     try {
       File otherLogZip = logger.makeLogZipFile("other_log");
-
       logger.printLog(LLogger.I, otherLogZip);
     } catch (IOException e) {
       logger.printLog(LLogger.E, e);
@@ -125,6 +145,7 @@ public class LoggerActivity extends AppCompatActivity {
     logger.printLog(LLogger.V);
     logger.printLog(LLogger.D);
     logger.printJson(new JSONObject().put("key", "value"));
+    logger.printLog(Logger.I, new JSONObject().put("key1", "value1"));
     logger.printTrace();
 
     try {
@@ -150,6 +171,7 @@ public class LoggerActivity extends AppCompatActivity {
 
     LLogger.d(longText.toString());
   }
+
 
   class MyRunnable implements Runnable {
 
