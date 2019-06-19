@@ -2,11 +2,16 @@
 
 apply from : 'config.gradle'
 
+
 buildscript {
-    
+
     repositories {
         google()
         jcenter()
+
+        maven {
+            url uri('./repo')
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.2'
@@ -14,6 +19,8 @@ buildscript {
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+        classpath "com.licola.llogger.plugin:llogger-gradle-plugin:1.0.0"
+
     }
 }
 

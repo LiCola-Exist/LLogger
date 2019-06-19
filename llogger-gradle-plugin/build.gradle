@@ -1,0 +1,32 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()//gradle sdk
+    compile localGroovy()//groovy sdk
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+dependencies {
+    compile 'com.android.tools.build:gradle:3.3.2'
+}
+
+sourceCompatibility = "7"
+targetCompatibility = "7"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            //设置插件的GAV参数
+            pom.groupId = 'com.licola.llogger.plugin'
+            pom.version = '1.0.0'
+            //文件发布到下面目录
+            repository(url: uri('../repo'))
+        }
+    }
+}
+
