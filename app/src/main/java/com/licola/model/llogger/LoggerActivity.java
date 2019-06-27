@@ -3,6 +3,7 @@ package com.licola.model.llogger;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.View.OnClickListener;
 import com.licola.llogger.LLogger;
 import com.licola.llogger.LSupplier;
 import com.licola.llogger.Logger;
@@ -21,12 +22,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class LoggerActivity extends AppCompatActivity {
+public class LoggerActivity extends AppCompatActivity implements OnClickListener {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_logger);
+
+    findViewById(R.id.btn_insert).setOnClickListener(this);
   }
 
   public void onClickLogV(View view) {
@@ -170,6 +173,11 @@ public class LoggerActivity extends AppCompatActivity {
     }
 
     LLogger.d(longText.toString());
+  }
+
+  @Override
+  public void onClick(View v) {
+
   }
 
 

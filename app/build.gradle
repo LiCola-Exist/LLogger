@@ -1,10 +1,6 @@
 apply plugin: 'com.android.application'
+//apply plugin: "com.licola.llogger"
 
-apply plugin: "com.licola.llogger"
-
-e1 {
-    testVar = "first var"
-}
 
 android {
     compileSdkVersion 27

@@ -1,5 +1,4 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 apply from : 'config.gradle'
 
 
@@ -8,7 +7,7 @@ buildscript {
     repositories {
         google()
         jcenter()
-
+        mavenCentral()
         maven {
             url uri('./repo')
         }
@@ -28,6 +27,7 @@ allprojects {
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
 
     tasks.withType(Javadoc) {

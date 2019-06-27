@@ -71,5 +71,11 @@
       android:onClick="onClickInstanceOther"
       android:text="log-instance-other" />
 
+    <Button
+      android:id="@+id/btn_insert"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="plugin-insert-code" />
+
   </LinearLayout>
 </android.support.v4.widget.NestedScrollView>
